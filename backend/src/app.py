@@ -28,7 +28,7 @@ def floor_to_day(dt: datetime):
     return dt.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
-@app.post("/get_or_simulate_day/")
+@app.post("/get_or_simulate_day")
 async def get_or_simulate_day(req: SimulationRequest):
     rounded_ts = floor_to_day(req.timestamp)
 
@@ -52,13 +52,13 @@ async def get_or_simulate_day(req: SimulationRequest):
     }
 
 
-@app.post("/summarize/")
+@app.post("/summarize")
 async def summarize():
     # Placeholder for Gemini or LLM-based summary generation
     return {"summary": "This is a placeholder summary from Gemini."}
 
 
-@app.post("/graph/primary/")
+@app.post("/graph/primary")
 async def graph_primary():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"graph_{timestamp}.png"
@@ -79,11 +79,11 @@ async def graph_primary():
 
     return {"filename": filename}
 
-@app.post("/graph/secondary/")
+@app.post("/graph/secondary")
 async def graph_secondary():
     pass
 
-@app.post("/get_blood_values/")
+@app.post("/get_blood_values")
 async def get_blood_values():
     pass
 
