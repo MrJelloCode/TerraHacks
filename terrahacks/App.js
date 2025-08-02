@@ -3,6 +3,8 @@ import { Animated } from 'react-native';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, SafeAreaView } from 'react-native';
 import Svg, { Polyline, Line, Text as SvgText } from 'react-native-svg';
 
+const SECTION_SPACING = 14;
+
 const COLORS = {
   bg: '#f8f9fa',
   primary: '#0077b6',
@@ -77,26 +79,25 @@ export default function App() {
     ]).start(() => setVisible(false));
   };
 
-  const altLevels = [35, 45, 60, 72, 68, 51, 40];
-  const dayLabels = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-
   return (
     <Animated.View style={[styles.safeArea, { backgroundColor: bgInterpolate }]}> 
       <Animated.ScrollView style={[styles.container, { backgroundColor: bgInterpolate }]} contentContainerStyle={styles.scrollContent}>
 
-        <View style={styles.header}><Text style={styles.headerText}>Welcome, Malaravan</Text></View>
+        <View style={[styles.header, { marginBottom: SECTION_SPACING }]}><Text style={styles.headerText}>Welcome, Malaravan</Text></View>
 
-        <View style={styles.topSection}>
-          <View style={styles.liverBox}><Text style={styles.boxLabel}>Liver Model</Text></View>
-          <View style={styles.rightColumn}>
-            <TouchableOpacity style={styles.riskBox} activeOpacity={0.85} onPress={() => openModal(setRiskModalVisible)}>
-              <Text style={[styles.boxLabel, { color: COLORS.textPrimary }]}>Risks / Alerts</Text>
-              <View style={styles.bullet}><Text style={styles.bulletText}>ALT elevated</Text></View>
-              <View style={styles.bullet}><Text style={styles.bulletText}>Low sleep</Text></View>
-            </TouchableOpacity>
-            <View style={[styles.scoreCircle, { borderColor: getScoreColor() }]}><Text style={styles.scoreText}>{score}</Text></View>
+        <View style={[styles.liverBox, { marginBottom: SECTION_SPACING }]}><Text style={styles.boxLabel}>Liver Model</Text></View>
+
+        <TouchableOpacity style={[styles.combinedRiskBoxFull, { marginBottom: SECTION_SPACING }]} activeOpacity={0.85} onPress={() => openModal(setRiskModalVisible)}>
+          <View>
+            <Text style={[styles.boxLabel, { color: COLORS.textPrimary }]}>⚠️</Text>
+            <View style={styles.bullet}><Text style={styles.bulletText}>• ALT elevated – potential liver strain</Text></View>
+            <View style={styles.bullet}><Text style={styles.bulletText}>• Low sleep – less than 5h average</Text></View>
+            <View style={styles.bullet}><Text style={styles.bulletText}>• High stress – above normal threshold</Text></View>
           </View>
-        </View>
+          <View style={styles.scoreCircleWrapper}>
+            <View style={[styles.scoreCircle, { borderColor: getScoreColor(), backgroundColor: '#fff' }]}><Text style={styles.scoreText}>{score}</Text></View>
+          </View>
+        </TouchableOpacity>
 
         <Modal visible={riskModalVisible} animationType="none" transparent>
           <View style={styles.modalBackdrop}>
@@ -111,7 +112,7 @@ export default function App() {
           </View>
         </Modal>
 
-        <TouchableOpacity style={styles.simulateButton} activeOpacity={0.8} onPress={() => openModal(setSimulateModalVisible)}>
+        <TouchableOpacity style={[styles.simulateButton, { marginBottom: SECTION_SPACING }]} activeOpacity={0.8} onPress={() => openModal(setSimulateModalVisible)}>
           <Text style={styles.simulateText}>Simulate a Situation</Text>
         </TouchableOpacity>
 
@@ -138,32 +139,13 @@ export default function App() {
           </View>
         </Modal>
 
-        <View style={styles.chartRow}>
-          <View style={styles.chartBox}>
-            <Text style={styles.boxLabel}>Chart: ALT Levels</Text>
-            <Svg height="140" width="100%" style={{ marginTop: 10  }}>
-              <Line x1="0" y1="100" x2="350" y2="100" stroke="#ccc" strokeWidth="1" />
-              <Polyline
-                points={altLevels.map((v, i) => `${i * 50},${100 - v / 100 * 80}`).join(' ')}
-                fill="none"
-                stroke="#ef476f"
-                strokeWidth="2"
-              />
-              {dayLabels.map((day, i) => (
-                <SvgText
-                  key={day}
-                  x={i * 50 + 8}
-                  y={115}
-                  fontSize="10"
-                  fill="#666"
-                  textAnchor="middle"
-                >
-                  {day}
-                </SvgText>
-              ))}
-            </Svg>
-          </View>
-          <View style={styles.chartBox}><Text style={styles.boxLabel}>Chart: Sleep vs Alcohol</Text></View>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.navButton} activeOpacity={0.85}>
+            <Text style={styles.navButtonText}>View Reports</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navButton} activeOpacity={0.85}>
+            <Text style={styles.navButtonText}>Medical Data</Text>
+          </TouchableOpacity>
         </View>
 
       </Animated.ScrollView>
@@ -172,6 +154,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+
   safeArea: { flex: 1 },
   container: { flex: 1 },
   scrollContent: {
@@ -180,6 +163,7 @@ const styles = StyleSheet.create({
     paddingTop: 55,
     opacity: 1
   },
+
   header: {
     padding: 10,
     backgroundColor: COLORS.secondary,
@@ -260,7 +244,8 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary
   },
   simulateButton: {
-    marginTop: 20,
+    marginTop: 25,
+
     backgroundColor: COLORS.primary,
     padding: 18,
     borderRadius: 12,
@@ -369,5 +354,89 @@ const styles = StyleSheet.create({
     elevation: 8,
     borderWidth: 1,
     borderColor: '#e0e0e0'
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 24,
+    paddingHorizontal: 10
+  },
+  navButton: {
+    backgroundColor: COLORS.secondary,
+    padding: 18,
+    borderRadius: 12,
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 6
+  },
+  navButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textPrimary
+  },   liverBox: {
+    backgroundColor: COLORS.secondary,
+    borderRadius: 12,
+    padding: 18,
+    marginHorizontal: 2,
+    height: 400,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: 16,
+    marginTop: 16
+  },
+  riskBoxContainer: {
+    flex: 1,
+    marginRight: 12
+  },
+  riskBox: {
+    marginHorizontal: -14,
+    backgroundColor: '#e8f4ff',
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#c5d9eb',
+    height: 140
+  },
+  scoreWrapper: {
+    justifyContent: 'center'
+  },
+  scoreCircle: {
+    width: 80,
+    marginLeft: -1,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 4,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  scoreText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary
+  },
+  bullet: {
+    marginVertical: 2
+  },
+  bulletText: {
+    fontSize: 14,
+    color: COLORS.textPrimary
+  },
+
+     combinedRiskBoxFull: {
+    flexDirection: 'row',
+    backgroundColor: '#e8f4fc',
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 20,
+    marginHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  scoreCircleWrapper: {
+    paddingLeft: 12
   }
 });
