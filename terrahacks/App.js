@@ -11,13 +11,16 @@ const COLORS = {
   textPrimary: '#023047',
   textSecondary: '#6c757d',
   card: '#ffffff',
-  scoreLow: '#06d6a0', // Green for good
-  scoreMid: '#ffd166', // Yellow for moderate
-  scoreHigh: '#ef476f' // Red for poor
+  scoreLow: '#06d6a0',
+  scoreMid: '#ffd166',
+  scoreHigh: '#ef476f'
 };
 
 export default function App() {
   const [bgAnim] = useState(new Animated.Value(0));
+  const [modalScale] = useState(new Animated.Value(0.8));
+  const [modalOpacity] = useState(new Animated.Value(0));
+
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -36,56 +39,81 @@ export default function App() {
   const [simulateModalVisible, setSimulateModalVisible] = useState(false);
   const [simulationText, setSimulationText] = useState('');
 
-  const score = 80;
+  const score = 65; // Example score, replace with actual logic
   const getScoreColor = () => {
     if (score < 30) return COLORS.scoreHigh;
     if (score < 75) return COLORS.scoreMid;
     return COLORS.scoreLow;
   };
 
+  const openModal = (setVisible) => {
+    setVisible(true);
+    Animated.parallel([
+      Animated.timing(modalOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true
+      }),
+      Animated.spring(modalScale, {
+        toValue: 1,
+        useNativeDriver: true
+      })
+    ]).start();
+  };
+
+  const closeModal = (setVisible) => {
+    Animated.parallel([
+      Animated.timing(modalOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true
+      }),
+      Animated.timing(modalScale, {
+        toValue: 0.8,
+        duration: 200,
+        useNativeDriver: true
+      })
+    ]).start(() => setVisible(false));
+  };
+
   return (
     <Animated.View style={[styles.safeArea, { backgroundColor: bgInterpolate }]}> 
       <Animated.ScrollView style={[styles.container, { backgroundColor: bgInterpolate }]} contentContainerStyle={styles.scrollContent}>
 
-        {/* Header */}
         <View style={styles.header}><Text style={styles.headerText}>Welcome, Malaravan</Text></View>
 
-        {/* Liver Model & Risks/Score Section */}
         <View style={styles.topSection}>
           <View style={styles.liverBox}><Text style={styles.boxLabel}>Liver Model</Text></View>
           <View style={styles.rightColumn}>
-            <TouchableOpacity style={styles.riskBox} activeOpacity={0.85} onPress={() => setRiskModalVisible(true)}>
+            <TouchableOpacity style={styles.riskBox} activeOpacity={0.85} onPress={() => openModal(setRiskModalVisible)}>
               <Text style={[styles.boxLabel, { color: COLORS.textPrimary }]}>Risks / Alerts</Text>
-              <View style={styles.bullet}><Text>• ALT elevated</Text></View>
-              <View style={styles.bullet}><Text>• Low sleep</Text></View>
+              <View style={styles.bullet}><Text style={styles.bulletText}>ALT elevated</Text></View>
+              <View style={styles.bullet}><Text style={styles.bulletText}>Low sleep</Text></View>
             </TouchableOpacity>
             <View style={[styles.scoreCircle, { borderColor: getScoreColor() }]}><Text style={styles.scoreText}>{score}</Text></View>
           </View>
         </View>
 
-        {/* Risk Modal */}
-        <Modal visible={riskModalVisible} animationType="slide" transparent>
+        <Modal visible={riskModalVisible} animationType="none" transparent>
           <View style={styles.modalBackdrop}>
-            <View style={styles.modalBox}>
+            <Animated.View style={[styles.modalBox, styles.enhancedModalBox, { transform: [{ scale: modalScale }], opacity: modalOpacity }]}>
               <Text style={styles.modalTitle}>Risk Details</Text>
-              <Text>- ALT is elevated, indicating potential liver strain.</Text>
-              <Text>- Sleep patterns below 5hr average last 3 days.</Text>
-              <TouchableOpacity onPress={() => setRiskModalVisible(false)} style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Close</Text>
+              <Text style={styles.modalText}>- ALT is elevated, indicating potential liver strain.</Text>
+              <Text style={styles.modalText}>- Sleep patterns below 5hr average last 3 days.</Text>
+              <TouchableOpacity onPress={() => closeModal(setRiskModalVisible)} style={[styles.modalButton, { backgroundColor: COLORS.danger }]}>
+                <Text style={[styles.modalButtonText, { color: '#fffff' }]}>Close</Text>
               </TouchableOpacity>
-            </View>
+            </Animated.View>
           </View>
         </Modal>
 
-        {/* Simulate Button */}
-        <TouchableOpacity style={styles.simulateButton} activeOpacity={0.8} onPress={() => setSimulateModalVisible(true)}>
+        <TouchableOpacity style={styles.simulateButton} activeOpacity={0.8} onPress={() => openModal(setSimulateModalVisible)}>
           <Text style={styles.simulateText}>Simulate a Situation</Text>
         </TouchableOpacity>
 
-        {/* Simulate Modal */}
-        <Modal visible={simulateModalVisible} animationType="slide" transparent>
+        <Modal visible={simulateModalVisible} animationType="none" transparent>
           <View style={styles.modalBackdrop}>
-            <View style={styles.modalBox}>
+            <Animated.View style={[styles.modalBox, { transform: [{ scale: modalScale }], opacity: modalOpacity }]}>
               <Text style={styles.modalTitle}>Simulation</Text>
               <TextInput
                 style={styles.simulateInput}
@@ -95,18 +123,17 @@ export default function App() {
                 onChangeText={setSimulationText}
               />
               <View style={styles.modalButtonRow}>
-                <TouchableOpacity onPress={() => setSimulateModalVisible(false)} style={styles.modalButtonAlt} activeOpacity={0.85}>
+                <TouchableOpacity onPress={() => closeModal(setSimulateModalVisible)} style={styles.modalButtonAlt} activeOpacity={0.85}>
                   <Text style={styles.modalButtonText}>Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => setSimulateModalVisible(false)} style={styles.modalButton} activeOpacity={0.85}>
+                <TouchableOpacity onPress={() => closeModal(setSimulateModalVisible)} style={styles.modalButton} activeOpacity={0.85}>
                   <Text style={styles.modalButtonText}>Run Simulation</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </Animated.View>
           </View>
         </Modal>
 
-        {/* Charts */}
         <View style={styles.chartRow}>
           <View style={styles.chartBox}><Text style={styles.boxLabel}>Chart: ALT Levels</Text></View>
           <View style={styles.chartBox}><Text style={styles.boxLabel}>Chart: Sleep vs Alcohol</Text></View>
@@ -118,12 +145,8 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1
-  },
-  container: {
-    flex: 1
-  },
+  safeArea: { flex: 1 },
+  container: { flex: 1 },
   scrollContent: {
     padding: 20,
     paddingBottom: 60,
@@ -180,10 +203,14 @@ const styles = StyleSheet.create({
   },
   bullet: {
     marginTop: 6,
-    paddingLeft: 6,
+    paddingLeft: 8,
     borderLeftWidth: 3,
     borderLeftColor: COLORS.primary,
     marginBottom: 4
+  },
+  bulletText: {
+    color: COLORS.textPrimary,
+    fontSize: 14
   },
   scoreCircle: {
     borderRadius: 60,
@@ -296,5 +323,24 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 10,
     textAlignVertical: 'top'
+  },
+  // previous styles...
+  modalText: {
+    fontSize: 14,
+    marginBottom: 6,
+    color: '#333'
+  },
+  enhancedModalBox: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '85%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0'
   }
 });
