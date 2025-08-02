@@ -1,8 +1,6 @@
 import torch
-from neural_net import HealthScoreNet
-
 from generate_test_data import generate_test_training_sample
-
+from neural_net import HealthScoreNet
 
 # load NN
 model = HealthScoreNet()
