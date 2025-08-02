@@ -7,6 +7,9 @@ from motor.motor_asyncio import AsyncIOMotorCollection
 logger = logging.getLogger("terrahacks-simulation.db")
 
 
+DB_URI = "mongodb://localhost:27017"
+
+
 class DatabaseNotConnectedError(Exception):
     def __init__(self):
         msg = "Database not connected. Call `connect()` first."
@@ -53,4 +56,6 @@ class MongoDB:
     async def clear_collection(self):
         await self.collection.delete_many({})
 
-db = MongoDB()
+db = MongoDB(
+    
+)

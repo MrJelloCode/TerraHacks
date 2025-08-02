@@ -133,8 +133,19 @@ def generate_batch_training_samples(batch_size: int) -> list:
 
 
 if __name__ == "__main__":
-    with open("../../data/grouped_watch_data.json") as fp:
+    with open("./app/grouped_watch_data.json") as fp:
         data = json.load(fp)
 
-    print(generate_watch_tensor(data))
+    for day, day_entry in data.items():
+        if "series" in day_entry:
+            if "HKCategoryTypeIdentifierSleepAnalysis" in day_entry["series"]:
+                del data[day]["series"]["HKCategoryTypeIdentifierSleepAnalysis"]
+        
+        if "HKCategoryTypeIdentifierSleepAnalysis" in day_entry:
+            del data[day]["HKCategoryTypeIdentifierSleepAnalysis"]
+        
+    with open("./app/grouped_watch_data2.json", "w") as fp:
+        json.dump(data, fp, indent=2)
+
+    # print(generate_watch_tensor(data))
 
