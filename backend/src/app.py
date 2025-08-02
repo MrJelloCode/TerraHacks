@@ -1,19 +1,15 @@
 import logging
-import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-load_dotenv()
-
-from .database import db  # noqa: E402
+from .database import db
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
