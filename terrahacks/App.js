@@ -11,12 +11,10 @@ const COLORS = {
   textPrimary: '#023047',
   textSecondary: '#6c757d',
   card: '#ffffff',
-  scoreLow: '#90e0ef',
-  scoreMid: '#ffd166',
-  scoreHigh: '#ef476f'
+  scoreLow: '#06d6a0', // Green for good
+  scoreMid: '#ffd166', // Yellow for moderate
+  scoreHigh: '#ef476f' // Red for poor
 };
-
-
 
 export default function App() {
   const [bgAnim] = useState(new Animated.Value(0));
@@ -38,12 +36,19 @@ export default function App() {
   const [simulateModalVisible, setSimulateModalVisible] = useState(false);
   const [simulationText, setSimulationText] = useState('');
 
+  const score = 20;
+  const getScoreColor = () => {
+    if (score < 30) return COLORS.scoreHigh;
+    if (score < 75) return COLORS.scoreMid;
+    return COLORS.scoreLow;
+  };
+
   return (
     <Animated.View style={[styles.safeArea, { backgroundColor: bgInterpolate }]}> 
       <Animated.ScrollView style={[styles.container, { backgroundColor: bgInterpolate }]} contentContainerStyle={styles.scrollContent}>
 
         {/* Header */}
-        <View style={styles.header}><Text style={styles.headerText}>Welcome, User</Text></View>
+        <View style={styles.header}><Text style={styles.headerText}>Welcome, Malaravan</Text></View>
 
         {/* Liver Model & Risks/Score Section */}
         <View style={styles.topSection}>
@@ -54,7 +59,7 @@ export default function App() {
               <View style={styles.bullet}><Text>• ALT elevated</Text></View>
               <View style={styles.bullet}><Text>• Low sleep</Text></View>
             </TouchableOpacity>
-            <View style={styles.scoreCircle}><Text style={styles.scoreText}>67</Text></View>
+            <View style={[styles.scoreCircle, { borderColor: getScoreColor() }]}><Text style={styles.scoreText}>{score}</Text></View>
           </View>
         </View>
 
@@ -122,7 +127,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 20,
     paddingBottom: 60,
-    paddingTop: 50,
+    paddingTop: 55,
     opacity: 1
   },
   header: {
@@ -182,7 +187,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     borderWidth: 6,
-    borderColor: COLORS.scoreMid,
     backgroundColor: COLORS.card,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
@@ -220,11 +224,15 @@ const styles = StyleSheet.create({
   chartBox: {
     width: '100%',
     backgroundColor: COLORS.card,
-    padding: 24,
-    borderRadius: 14,
-    marginBottom: 12,
+    padding: 28,
+    borderRadius: 16,
+    marginBottom: 16,
+    minHeight: 150,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 }
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 5,
+    elevation: 5
   },
   boxLabel: {
     fontSize: 16,
