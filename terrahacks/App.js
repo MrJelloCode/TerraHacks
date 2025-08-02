@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Animated } from 'react-native';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, SafeAreaView } from 'react-native';
 import Svg, { Polyline, Line, Text as SvgText } from 'react-native-svg';
+import Reports from './reports';
 
 const SECTION_SPACING = 14;
 
@@ -41,6 +42,7 @@ export default function App() {
   const [riskModalVisible, setRiskModalVisible] = useState(false);
   const [simulateModalVisible, setSimulateModalVisible] = useState(false);
   const [simulationText, setSimulationText] = useState('');
+  const [showReports, setShowReports] = useState(false);
 
   const score = 80;
   const getScoreColor = () => {
@@ -78,6 +80,10 @@ export default function App() {
       })
     ]).start(() => setVisible(false));
   };
+
+  if (showReports) {
+    return <Reports goBack={() => setShowReports(false)} bgInterpolate={bgInterpolate} />;
+  }
 
   return (
     <Animated.View style={[styles.safeArea, { backgroundColor: bgInterpolate }]}> 
@@ -140,7 +146,7 @@ export default function App() {
         </Modal>
 
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.navButton} activeOpacity={0.85}>
+          <TouchableOpacity style={styles.navButton} activeOpacity={0.85} onPress={() => setShowReports(true)}>
             <Text style={styles.navButtonText}>View Reports</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navButton} activeOpacity={0.85}>
@@ -152,6 +158,9 @@ export default function App() {
     </Animated.View>
   );
 }
+
+// ...styles unchanged
+
 
 const styles = StyleSheet.create({
 
