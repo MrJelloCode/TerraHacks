@@ -72,7 +72,7 @@ class HealthScoreNet(nn.Module):
             nn.Linear(64, 32),
             nn.ReLU(),
             nn.Linear(32, 1),
-            nn.Sigmoid()          # Output range: [0, 1]
+            nn.Sigmoid(),      # Output range: [0, 1]
         )
 
     def forward(self, x):

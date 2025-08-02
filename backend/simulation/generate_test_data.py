@@ -1,7 +1,8 @@
-from datetime import datetime
 import json
-import torch
+from datetime import datetime
+
 import numpy as np
+import torch
 
 
 def generate_heart_rate_series(base_hr=75):
@@ -19,22 +20,20 @@ def get_hour(dt_str):
     return datetime.fromisoformat(dt_str).hour
 
 
-
 def hourly_series_from_data(data, batch_id, key, add=False):
     day_entry = data[list(data.keys())[batch_id]]
     step_entries = day_entry.get(key, [])
     if not step_entries:
         return []
     values = [0] * 24
-    
+
     for entry in step_entries:
         hour = get_hour(entry["startDate"])
-        
+
         if add:
             values[hour] += entry["value"]
         elif values[hour] == 0:
             values[hour] = entry["value"]
-    
 
     # Convert to numpy array for interpolation
     values = np.array(values, dtype=np.float32)
@@ -48,9 +47,7 @@ def hourly_series_from_data(data, batch_id, key, add=False):
         return values
 
     # Interpolate over zeros
-    interp_steps = np.interp(x=np.arange(24), xp=nonzero_indices, fp=nonzero_values)
-
-    return interp_steps
+    return np.interp(x=np.arange(24), xp=nonzero_indices, fp=nonzero_values)
 
 
 
@@ -79,17 +76,16 @@ def generate_blood_test_sample():
         "Glucose": np.random.normal(90, 10),
     }
 
+
 def generate_blood_test_tensor():
     sample = generate_blood_test_sample()
 
     # Ensure the order of keys is consistent
-    ordered_keys = [
-        "ALT", "AST", "GGT", "Bilirubin", "Albumin",
-        "Platelets", "INR", "Triglycerides", "Glucose"
-    ]
+    ordered_keys = ["ALT", "AST", "GGT", "Bilirubin", "Albumin", "Platelets", "INR", "Triglycerides", "Glucose"]
 
     values = [sample[key] for key in ordered_keys]
     return torch.tensor(values, dtype=torch.float32)  # shape: [len(ordered_keys)]
+
 
 def generate_risk_score(series: torch.Tensor, blood: torch.Tensor) -> float:
     score = 0.0
@@ -101,17 +97,17 @@ def generate_risk_score(series: torch.Tensor, blood: torch.Tensor) -> float:
     steps = series[:, 2]
 
     if ALT > 55 or GGT > 40:
-        score += 1/5
+        score += 1 / 5
     if Albumin < 3.5 or INR > 1.2:
-        score += 1/5
+        score += 1 / 5
     if Triglycerides > 150 or Glucose > 100:
-        score += 1/5
+        score += 1 / 5
     if heart_rate.mean() > 90:
-        score += 1/5
+        score += 1 / 5
     if spo2.mean() < 95:
-        score += 1/10
+        score += 1 / 10
     if steps.sum() < 5000:
-        score += 1/10
+        score += 1 / 10
 
     return round(min(score, 1.0), 2)
 
@@ -140,12 +136,11 @@ if __name__ == "__main__":
         if "series" in day_entry:
             if "HKCategoryTypeIdentifierSleepAnalysis" in day_entry["series"]:
                 del data[day]["series"]["HKCategoryTypeIdentifierSleepAnalysis"]
-        
+
         if "HKCategoryTypeIdentifierSleepAnalysis" in day_entry:
             del data[day]["HKCategoryTypeIdentifierSleepAnalysis"]
-        
+
     with open("./app/grouped_watch_data2.json", "w") as fp:
         json.dump(data, fp, indent=2)
 
     # print(generate_watch_tensor(data))
-
