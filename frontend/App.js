@@ -114,12 +114,30 @@ export default function App() {
 
         <View style={[styles.liverBox, { marginBottom: SECTION_SPACING }]}>
           <Text style={[styles.boxLabel, { marginBottom: 10 }]}>{formatDate(currentDate)}</Text>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%', marginTop: 20 }}>
-            <TouchableOpacity onPress={() => changeDate(-7)}><Text style={{ fontSize: 28 }}><SkipBack /></Text></TouchableOpacity>
-            <TouchableOpacity onPress={() => changeDate(-1)}><Text style={{ fontSize: 28 }}><Rewind /></Text></TouchableOpacity>
-            <TouchableOpacity onPress={() => changeDate(1)}><Text style={{ fontSize: 28 }}><FastForward /></Text></TouchableOpacity>
-            <TouchableOpacity onPress={() => changeDate(7)}><Text style={{ fontSize: 28 }}><SkipForward /></Text></TouchableOpacity>
-          </View>
+          <View style={{ alignItems: 'center' }}>
+  <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%', marginTop: 20 }}>
+    <TouchableOpacity onPress={() => changeDate(-7)}><Text style={{ fontSize: 28 }}><SkipBack /></Text></TouchableOpacity>
+    <TouchableOpacity onPress={() => changeDate(-1)}><Text style={{ fontSize: 28 }}><Rewind /></Text></TouchableOpacity>
+    <TouchableOpacity onPress={() => changeDate(1)}><Text style={{ fontSize: 28 }}><FastForward /></Text></TouchableOpacity>
+    <TouchableOpacity onPress={() => changeDate(7)}><Text style={{ fontSize: 28 }}><SkipForward /></Text></TouchableOpacity>
+  </View>
+
+  <TouchableOpacity
+    onPress={() => setCurrentDate(new Date('2025-08-03'))}
+    style={{
+      marginTop: 14,
+      backgroundColor: '#fff',
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: COLORS.primary
+    }}
+  >
+    <Text style={{ color: COLORS.primary, fontWeight: '600' }}>Reset Date</Text>
+  </TouchableOpacity>
+</View>
+
         </View>
         
         <TouchableOpacity style={[styles.combinedRiskBoxFull, { marginBottom: SECTION_SPACING }]} activeOpacity={0.85} onPress={() => openModal(setRiskModalVisible)}>
