@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Animated } from 'react-native';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, SafeAreaView } from 'react-native';
+import Svg, { Polyline, Line, Text as SvgText } from 'react-native-svg';
 
 const COLORS = {
   bg: '#f8f9fa',
@@ -39,7 +40,7 @@ export default function App() {
   const [simulateModalVisible, setSimulateModalVisible] = useState(false);
   const [simulationText, setSimulationText] = useState('');
 
-  const score = 65; // Example score, replace with actual logic
+  const score = 80;
   const getScoreColor = () => {
     if (score < 30) return COLORS.scoreHigh;
     if (score < 75) return COLORS.scoreMid;
@@ -76,6 +77,9 @@ export default function App() {
     ]).start(() => setVisible(false));
   };
 
+  const altLevels = [35, 45, 60, 72, 68, 51, 40];
+  const dayLabels = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
   return (
     <Animated.View style={[styles.safeArea, { backgroundColor: bgInterpolate }]}> 
       <Animated.ScrollView style={[styles.container, { backgroundColor: bgInterpolate }]} contentContainerStyle={styles.scrollContent}>
@@ -101,7 +105,7 @@ export default function App() {
               <Text style={styles.modalText}>- ALT is elevated, indicating potential liver strain.</Text>
               <Text style={styles.modalText}>- Sleep patterns below 5hr average last 3 days.</Text>
               <TouchableOpacity onPress={() => closeModal(setRiskModalVisible)} style={[styles.modalButton, { backgroundColor: COLORS.danger }]}>
-                <Text style={[styles.modalButtonText, { color: '#fffff' }]}>Close</Text>
+                <Text style={[styles.modalButtonText, { color: '#fff' }]}>Close</Text>
               </TouchableOpacity>
             </Animated.View>
           </View>
@@ -135,7 +139,30 @@ export default function App() {
         </Modal>
 
         <View style={styles.chartRow}>
-          <View style={styles.chartBox}><Text style={styles.boxLabel}>Chart: ALT Levels</Text></View>
+          <View style={styles.chartBox}>
+            <Text style={styles.boxLabel}>Chart: ALT Levels</Text>
+            <Svg height="140" width="100%" style={{ marginTop: 10  }}>
+              <Line x1="0" y1="100" x2="350" y2="100" stroke="#ccc" strokeWidth="1" />
+              <Polyline
+                points={altLevels.map((v, i) => `${i * 50},${100 - v / 100 * 80}`).join(' ')}
+                fill="none"
+                stroke="#ef476f"
+                strokeWidth="2"
+              />
+              {dayLabels.map((day, i) => (
+                <SvgText
+                  key={day}
+                  x={i * 50 + 8}
+                  y={115}
+                  fontSize="10"
+                  fill="#666"
+                  textAnchor="middle"
+                >
+                  {day}
+                </SvgText>
+              ))}
+            </Svg>
+          </View>
           <View style={styles.chartBox}><Text style={styles.boxLabel}>Chart: Sleep vs Alcohol</Text></View>
         </View>
 
