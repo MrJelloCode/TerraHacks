@@ -36,7 +36,7 @@ export default function App() {
   const [simulateModalVisible, setSimulateModalVisible] = useState(false);
   const [simulationText, setSimulationText] = useState('');
 
-  const score = 20;
+  const score = 80;
   const getScoreColor = () => {
     if (score < 30) return COLORS.scoreHigh;
     if (score < 75) return COLORS.scoreMid;
@@ -55,7 +55,7 @@ export default function App() {
           <View style={styles.liverBox}><Text style={styles.boxLabel}>Liver Model</Text></View>
           <View style={styles.rightColumn}>
             <TouchableOpacity style={styles.riskBox} activeOpacity={0.85} onPress={() => setRiskModalVisible(true)}>
-              <Text style={styles.boxLabel}>Risks / Alerts</Text>
+              <Text style={[styles.boxLabel, { color: COLORS.textPrimary }]}>Risks / Alerts</Text>
               <View style={styles.bullet}><Text>• ALT elevated</Text></View>
               <View style={styles.bullet}><Text>• Low sleep</Text></View>
             </TouchableOpacity>
@@ -166,18 +166,24 @@ const styles = StyleSheet.create({
     paddingVertical: 10
   },
   riskBox: {
-    backgroundColor: COLORS.primary,
-    padding: 15,
-    borderRadius: 10,
+    backgroundColor: '#e8f4fc',
+    padding: 16,
+    borderRadius: 14,
     marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.12,
     shadowRadius: 3,
-    elevation: 3
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#90e0ef'
   },
   bullet: {
-    marginTop: 4
+    marginTop: 6,
+    paddingLeft: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.primary,
+    marginBottom: 4
   },
   scoreCircle: {
     borderRadius: 60,
