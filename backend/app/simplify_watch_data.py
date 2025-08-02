@@ -33,4 +33,3 @@ if __name__ == "__main__":
 
     with Path("./app/grouped_watch_data.json").open("w") as fp:
         json.dump(grouped_data, fp, indent=2)
-        json.dump(grouped_data, fp, indent=2)

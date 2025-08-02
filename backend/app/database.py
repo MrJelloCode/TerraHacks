@@ -1,10 +1,15 @@
 import logging
+import os
 from typing import Any
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from motor.motor_asyncio import AsyncIOMotorCollection
 
 logger = logging.getLogger("terrahacks-simulation.db")
+
+DB_URI = os.getenv("MONGO_URI")
+DB_NAME = os.getenv("MONGO_DB_NAME")
+DB_COLLECTION = os.getenv("MONGO_COLLECTION_NAME")
 
 
 class DatabaseNotConnectedError(Exception):
@@ -16,13 +21,14 @@ class DatabaseNotConnectedError(Exception):
 class MongoDB:
     def __init__(
         self,
-        uri: str = "mongodb://localhost:27017",
-        db_name: str = "mydb",
-        collection_name: str = "records",
+        uri: str,
+        db_name: str,
+        collection_name: str,
     ):
         self._uri = uri
         self._db_name = db_name
         self._collection_name = collection_name
+
         self._client: AsyncIOMotorClient | None = None
         self._collection: AsyncIOMotorCollection | None = None
 
@@ -39,18 +45,9 @@ class MongoDB:
             raise err
         return self._collection
 
-    async def insert_document(self, document: dict) -> str:
-        result = await self.collection.insert_one(document)
-        return str(result.inserted_id)
 
-    async def fetch_document(self, filter_query: dict) -> Any:
-        return await self.collection.find_one(filter_query)
-
-    async def fetch_all_documents(self, limit: int = 1000) -> list[dict]:
-        cursor = self.collection.find({})
-        return await cursor.to_list(length=limit)
-
-    async def clear_collection(self):
-        await self.collection.delete_many({})
-
-db = MongoDB()
+db = MongoDB(
+    DB_URI,
+    DB_NAME,
+    DB_COLLECTION,
+)

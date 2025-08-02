@@ -3,6 +3,7 @@ from neural_net import HealthScoreNet
 
 from generate_test_data import generate_test_training_sample
 
+
 # load NN
 model = HealthScoreNet()
 model.load_state_dict(torch.load("health_score_model.pt"))
