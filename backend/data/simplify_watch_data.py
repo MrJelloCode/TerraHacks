@@ -25,6 +25,15 @@ def group_apple_watch_data(data):
 
     return grouped
 
+# list = ["2025-07-08", 68, 78, 102] | example of an input list
+list = [timestamp, step_count, heart_rate, active_energy_burned]
+
+def inputting_data(list):
+   return {"timestamps": list[0],
+     "step_count": list[1],
+     "heart_rate": list[2],
+     "active_energy_burned": list[3]}
+
 
 if __name__ == "__main__":
     with Path("./app/apple_watch_7day_raw_data.json").open() as fp:
