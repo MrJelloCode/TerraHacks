@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Animated } from 'react-native';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, SafeAreaView } from 'react-native';
-import Svg, { Polyline, Line, Text as SvgText } from 'react-native-svg';
 import Reports from './reports';
+import MyData from './myData';
+import { SkipBack, Rewind, FastForward, SkipForward } from 'lucide-react-native';
 
 const SECTION_SPACING = 14;
 
@@ -24,6 +25,7 @@ export default function App() {
   const [bgAnim] = useState(new Animated.Value(0));
   const [modalScale] = useState(new Animated.Value(0.8));
   const [modalOpacity] = useState(new Animated.Value(0));
+  const [currentDate, setCurrentDate] = useState(new Date('2025-08-03'));
 
   useEffect(() => {
     Animated.loop(
@@ -31,8 +33,10 @@ export default function App() {
         Animated.timing(bgAnim, { toValue: 1, duration: 3000, useNativeDriver: false }),
         Animated.timing(bgAnim, { toValue: 0, duration: 3000, useNativeDriver: false })
       ])
-    ).start();
-  }, []);
+    ).start();4
+
+    console.log('Current Date:', currentDate.toISOString());
+  }, [currentDate]);
 
   const bgInterpolate = bgAnim.interpolate({
     inputRange: [0, 1],
@@ -43,6 +47,7 @@ export default function App() {
   const [simulateModalVisible, setSimulateModalVisible] = useState(false);
   const [simulationText, setSimulationText] = useState('');
   const [showReports, setShowReports] = useState(false);
+  const [showmyData, setShowmyData] = useState(false);
 
   const score = 80;
   const getScoreColor = () => {
@@ -81,8 +86,24 @@ export default function App() {
     ]).start(() => setVisible(false));
   };
 
+  const formatDate = (date) => {
+    return date.toISOString().split('T')[0];
+  };
+
+  const changeDate = (days) => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setDate(newDate.getDate() + days);
+      return newDate;
+    });
+  };
+
   if (showReports) {
     return <Reports goBack={() => setShowReports(false)} bgInterpolate={bgInterpolate} />;
+  }
+
+  if (showmyData) {
+    return <MyData goBack={() => setShowmyData(false)} bgInterpolate={bgInterpolate} />;
   }
 
   return (
@@ -91,8 +112,16 @@ export default function App() {
 
         <View style={[styles.header, { marginBottom: SECTION_SPACING }]}><Text style={styles.headerText}>Welcome, Malaravan</Text></View>
 
-        <View style={[styles.liverBox, { marginBottom: SECTION_SPACING }]}><Text style={styles.boxLabel}>Liver Model</Text></View>
-
+        <View style={[styles.liverBox, { marginBottom: SECTION_SPACING }]}>
+          <Text style={[styles.boxLabel, { marginBottom: 10 }]}>{formatDate(currentDate)}</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%', marginTop: 20 }}>
+            <TouchableOpacity onPress={() => changeDate(-7)}><Text style={{ fontSize: 28 }}><SkipBack /></Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => changeDate(-1)}><Text style={{ fontSize: 28 }}><Rewind /></Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => changeDate(1)}><Text style={{ fontSize: 28 }}><FastForward /></Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => changeDate(7)}><Text style={{ fontSize: 28 }}><SkipForward /></Text></TouchableOpacity>
+          </View>
+        </View>
+        
         <TouchableOpacity style={[styles.combinedRiskBoxFull, { marginBottom: SECTION_SPACING }]} activeOpacity={0.85} onPress={() => openModal(setRiskModalVisible)}>
           <View>
             <Text style={[styles.boxLabel, { color: COLORS.textPrimary }]}>⚠️</Text>
@@ -149,7 +178,7 @@ export default function App() {
           <TouchableOpacity style={styles.navButton} activeOpacity={0.85} onPress={() => setShowReports(true)}>
             <Text style={styles.navButtonText}>View Reports</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navButton} activeOpacity={0.85}>
+          <TouchableOpacity style={styles.navButton} activeOpacity={0.85} onPress={() => setShowmyData(true)}>
             <Text style={styles.navButtonText}>Medical Data</Text>
           </TouchableOpacity>
         </View>
@@ -210,9 +239,10 @@ const styles = StyleSheet.create({
   },
   riskBox: {
     backgroundColor: '#e8f4fc',
+    marginLeft: 10,
     padding: 16,
     borderRadius: 14,
-    marginBottom: 10,
+    marginBottom: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.12,
