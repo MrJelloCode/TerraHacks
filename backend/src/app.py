@@ -106,6 +106,7 @@ class PhysicalAttributes(BaseModel):
     is_smoker: bool
     alcohol_consumption: float
 
+
 @app.post("/submit-physical-attributes/")
 async def submit_physical_attributes(attrs: PhysicalAttributes):
     return {"summary": "This is a placeholder summary from Gemini."}
@@ -114,6 +115,12 @@ async def submit_physical_attributes(attrs: PhysicalAttributes):
 @app.post("/add_actual_entry/")
 async def add_actual_entry(steps_count: int, heart_rate: int, active_energy_burned: int):
     pass
+
+
+@app.get("/reports")
+async def get_reports():
+    return {"altData": [1, 2, 3, 4, 5], "bpmData": [60, 62, 61, 63, 64], "sleepData": [7, 6.5, 8, 7.5, 6]}
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

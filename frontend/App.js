@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Animated } from 'react-native';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, SafeAreaView } from 'react-native';
+import { Animated, View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
 import Reports from './reports';
 import MyData from './myData';
 import { SkipBack, Rewind, FastForward, SkipForward } from 'lucide-react-native';
 
-const SECTION_SPACING = 14;
+const SECTION_SPACING = 5;
 
 const COLORS = {
   bg: '#f8f9fa',
@@ -33,10 +32,28 @@ export default function App() {
         Animated.timing(bgAnim, { toValue: 1, duration: 3000, useNativeDriver: false }),
         Animated.timing(bgAnim, { toValue: 0, duration: 3000, useNativeDriver: false })
       ])
-    ).start();4
-
-    console.log('Current Date:', currentDate.toISOString());
+    ).start();
   }, [currentDate]);
+
+  const [idleAnim] = useState(new Animated.Value(0));
+
+useEffect(() => {
+  Animated.loop(
+    Animated.sequence([
+      Animated.timing(idleAnim, {
+        toValue: -10,
+        duration: 1500,
+        useNativeDriver: true
+      }),
+      Animated.timing(idleAnim, {
+        toValue: 0,
+        duration: 1500,
+        useNativeDriver: true
+      })
+    ])
+  ).start();
+}, []);
+
 
   const bgInterpolate = bgAnim.interpolate({
     inputRange: [0, 1],
@@ -86,9 +103,7 @@ export default function App() {
     ]).start(() => setVisible(false));
   };
 
-  const formatDate = (date) => {
-    return date.toISOString().split('T')[0];
-  };
+  const formatDate = (date) => date.toISOString().split('T')[0];
 
   const changeDate = (days) => {
     setCurrentDate(prev => {
@@ -98,13 +113,14 @@ export default function App() {
     });
   };
 
-  if (showReports) {
-    return <Reports goBack={() => setShowReports(false)} bgInterpolate={bgInterpolate} />;
-  }
+  const watchData = [
+    { label: "Heart Rate", value: "72 bpm" },
+    { label: "Steps", value: "9,400/day" },
+    { label: "SpO₂", value: "97%" }
+  ];
 
-  if (showmyData) {
-    return <MyData goBack={() => setShowmyData(false)} bgInterpolate={bgInterpolate} />;
-  }
+  if (showReports) return <Reports goBack={() => setShowReports(false)} bgInterpolate={bgInterpolate} />;
+  if (showmyData) return <MyData goBack={() => setShowmyData(false)} bgInterpolate={bgInterpolate} />;
 
   return (
     <Animated.View style={[styles.safeArea, { backgroundColor: bgInterpolate }]}> 
@@ -113,36 +129,44 @@ export default function App() {
         <View style={[styles.header, { marginBottom: SECTION_SPACING }]}><Text style={styles.headerText}>Welcome, Malaravan</Text></View>
 
         <View style={[styles.liverBox, { marginBottom: SECTION_SPACING }]}>
-          <Text style={[styles.boxLabel, { marginBottom: 10 }]}>{formatDate(currentDate)}</Text>
+          <Text style={[styles.boxLabel2, { marginBottom: 10 }]}>{formatDate(currentDate)}</Text>
+          
+          <Animated.Image
+  source={require('./assets/liver_sprite_00.png')}
+  style={{
+    width: 64 * 3,
+    height: 64 * 3,
+    marginBottom: 12,
+    transform: [{ translateY: idleAnim }]
+  }}
+/>
+
           <View style={{ alignItems: 'center' }}>
-  <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%', marginTop: 20 }}>
-    <TouchableOpacity onPress={() => changeDate(-7)}><Text style={{ fontSize: 28 }}><SkipBack /></Text></TouchableOpacity>
-    <TouchableOpacity onPress={() => changeDate(-1)}><Text style={{ fontSize: 28 }}><Rewind /></Text></TouchableOpacity>
-    <TouchableOpacity onPress={() => changeDate(1)}><Text style={{ fontSize: 28 }}><FastForward /></Text></TouchableOpacity>
-    <TouchableOpacity onPress={() => changeDate(7)}><Text style={{ fontSize: 28 }}><SkipForward /></Text></TouchableOpacity>
-  </View>
-
-  <TouchableOpacity
-    onPress={() => setCurrentDate(new Date('2025-08-03'))}
-    style={{
-      marginTop: 14,
-      backgroundColor: '#fff',
-      paddingVertical: 6,
-      paddingHorizontal: 12,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: COLORS.primary
-    }}
-  >
-    <Text style={{ color: COLORS.primary, fontWeight: '600' }}>Reset Date</Text>
-  </TouchableOpacity>
-</View>
-
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%', marginTop: 20 }}>
+              <TouchableOpacity onPress={() => changeDate(-7)}><Text style={{ fontSize: 28 }}><SkipBack /></Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => changeDate(-1)}><Text style={{ fontSize: 28 }}><Rewind /></Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => changeDate(1)}><Text style={{ fontSize: 28 }}><FastForward /></Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => changeDate(7)}><Text style={{ fontSize: 28 }}><SkipForward /></Text></TouchableOpacity>
+            </View>
+            <TouchableOpacity onPress={() => setCurrentDate(new Date('2025-08-03'))} style={{ marginTop: 14, backgroundColor: '#fff', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: COLORS.primary }}>
+              <Text style={{ color: COLORS.primary, fontWeight: '600' }}>Reset Date</Text>
+          
+            </TouchableOpacity>
+          </View>
         </View>
-        
+
+        <View style={styles.watchSummaryContainer}>
+          {watchData.map((item, index) => (
+            <View key={index} style={styles.watchDataBox}>
+              <Text style={styles.watchDataLabel}>{item.label}</Text>
+              <Text style={styles.watchDataValue}>{item.value}</Text>
+            </View>
+          ))}
+        </View>
+
         <TouchableOpacity style={[styles.combinedRiskBoxFull, { marginBottom: SECTION_SPACING }]} activeOpacity={0.85} onPress={() => openModal(setRiskModalVisible)}>
           <View>
-            <Text style={[styles.boxLabel, { color: COLORS.textPrimary }]}>⚠️</Text>
+            <Text style={[styles.boxLabel,, { color: COLORS.textPrimary }]}>⚠️Risk Analysis (Click for more details)</Text>
             <View style={styles.bullet}><Text style={styles.bulletText}>• ALT elevated – potential liver strain</Text></View>
             <View style={styles.bullet}><Text style={styles.bulletText}>• Low sleep – less than 5h average</Text></View>
             <View style={styles.bullet}><Text style={styles.bulletText}>• High stress – above normal threshold</Text></View>
@@ -173,13 +197,7 @@ export default function App() {
           <View style={styles.modalBackdrop}>
             <Animated.View style={[styles.modalBox, { transform: [{ scale: modalScale }], opacity: modalOpacity }]}>
               <Text style={styles.modalTitle}>Simulation</Text>
-              <TextInput
-                style={styles.simulateInput}
-                multiline
-                placeholder="e.g. What if I drank 4 beers and only slept 3 hours?"
-                value={simulationText}
-                onChangeText={setSimulationText}
-              />
+              <TextInput style={styles.simulateInput} multiline placeholder="e.g. What if I drank 4 beers and only slept 3 hours?" value={simulationText} onChangeText={setSimulationText} />
               <View style={styles.modalButtonRow}>
                 <TouchableOpacity onPress={() => closeModal(setSimulateModalVisible)} style={styles.modalButtonAlt} activeOpacity={0.85}>
                   <Text style={styles.modalButtonText}>Cancel</Text>
@@ -215,7 +233,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: {
     padding: 20,
-    paddingBottom: 60,
+    paddingBottom: 10,
     paddingTop: 55,
     opacity: 1
   },
@@ -340,6 +358,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333'
+  },boxLabel2: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333'
   },
   modalBackdrop: {
     flex: 1,
@@ -435,7 +457,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 18,
     marginHorizontal: 2,
-    height: 400,
+    height: 370,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -463,7 +485,8 @@ const styles = StyleSheet.create({
   },
   scoreCircle: {
     width: 80,
-    marginLeft: -1,
+    marginTop: 40,
+    marginLeft: -35,
     height: 80,
     borderRadius: 40,
     borderWidth: 4,
@@ -494,6 +517,30 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   scoreCircleWrapper: {
-    paddingLeft: 12
+    paddingLeft: 0
+  },
+   watchSummaryContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: '#f1fcff',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginHorizontal: 10,
+    marginTop: 5
+  },
+  watchDataBox: {
+    alignItems: 'center',
+    paddingHorizontal: 8
+  },
+  watchDataLabel: {
+    fontSize: 12,
+    color: '#6c757d'
+  },
+  watchDataValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#023047'
   }
 });
