@@ -1,13 +1,13 @@
-from torch.utils.data import DataLoader, Dataset
-import torch.nn as nn
 import torch
-
 from neural_net import HealthScoreNet
+from torch import nn
+from torch.utils.data import DataLoader
+from torch.utils.data import Dataset
 
 
 class HealthSeriesDataset(Dataset):
-    def __init__(self, N):
-        self.samples = [self.gen() for _ in range(N)]
+    def __init__(self, n: int):
+        self.samples = [self.gen() for _ in range(n)]
 
     def gen(self):
         x = torch.randn(24, 3)
@@ -24,7 +24,7 @@ class HealthSeriesDataset(Dataset):
 
 
 if __name__ == "__main__":
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model = HealthScoreNet().to(device)
     dataset = HealthSeriesDataset(5)
@@ -36,8 +36,8 @@ if __name__ == "__main__":
     for epoch in range(5):
         total_loss = 0
         for batch in loader:
-            series = batch['series'].to(device)  # [B, 24, 3]
-            label = batch['label'].to(device)    # [B]
+            series = batch["series"].to(device)  # [B, 24, 3]
+            label = batch["label"].to(device)    # [B]
 
             optimizer.zero_grad()
             out = model(series)
@@ -47,6 +47,6 @@ if __name__ == "__main__":
             total_loss += loss.item()
 
         print(f"[Epoch {epoch+1}] Loss: {total_loss/len(loader):.4f}")
-        
-        
+
+
     torch.save(model.state_dict(), "health_score_model.pt")

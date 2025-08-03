@@ -1,5 +1,4 @@
 import logging
-import json
 import os
 from typing import Any
 
@@ -38,18 +37,6 @@ class MongoDB:
         db = self._client[self._db_name]
         self._collection = db[self._collection_name]
         logger.info("Connected to MongoDB '%s.%s'", self._db_name, self._collection_name)
-        
-        record = await db.find_one()
-        if record is None:
-            logger.info("Initializing database with schema.")
-            await self.setup_collection()
-
-    async def setup_collection(self):
-        with open("database_schema.json") as file:
-            database_schema = json.load(file)
-
-        await self.collection.insert_many(database_schema)     
-
 
     @property
     def collection(self) -> AsyncIOMotorCollection:

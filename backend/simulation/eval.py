@@ -7,6 +7,11 @@ model.load_state_dict(torch.load("health_score_model.pt"))
 model.eval()
 
 
+def find_attribute_trends(prompt: str, blood_values: dict) -> dict:
+    # ask gemini for shenanigans
+    pass
+
+
 def simulate_blood_values(organ: str, prompt: str, last_known: dict) -> dict:
     # Simple simulation: add random noise to last known values
     # TODO: add negative or positive noise based on the prompt
