@@ -146,11 +146,13 @@ export default function App() {
   if (showReports) return <Reports goBack={() => setShowReports(false)} bgInterpolate={bgInterpolate} />;
   if (showmyData) return <MyData goBack={() => setShowmyData(false)} bgInterpolate={bgInterpolate} />;
 
+  const url = "http://ec2-18-118-9-175.us-east-2.compute.amazonaws.com"
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://ec2-18-223-171-221.us-east-2.compute.amazonaws.com/get_or_simulate_day`, {
+        const response = await fetch(`${url}/get_or_simulate_day`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -183,7 +185,7 @@ export default function App() {
 
             {loading ? <LoadingBar loading={loading} /> :
               <Animated.Image
-                source={"http://ec2-18-223-171-221.us-east-2.compute.amazonaws.com" + dayData.liver_sprite}
+                source={url + dayData.liver_sprite}
                 style={{
                   width: 64 * 3,
                   height: 64 * 3,
