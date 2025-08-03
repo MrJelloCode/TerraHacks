@@ -4,8 +4,6 @@ import Reports from './reports';
 import MyData from './myData';
 import { RotateCcw, SkipBack, Rewind, FastForward, SkipForward } from 'lucide-react-native';
 
-import { BallLoader } from "react-spinners";
-
 
 const SECTION_SPACING = 5;
 
@@ -34,14 +32,6 @@ export function LoadingBar({ loading }) {
   return (
     <div>
       <p>Fetching information from server...</p>
-      <BallLoader
-        color={COLORS.primary}
-        loading={loading}
-        cssOverride={override}
-        size={150}
-        aria-label="Loading Spinner"
-        data-testid="loader"
-      />
     </div>
   );
 }
