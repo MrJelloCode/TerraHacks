@@ -109,11 +109,13 @@ async def get_or_simulate_day(req: SimulationRequest):
     blood_values = evaluate_blood_values(series_data, new_physical_attributes)
     risk_score = evaluate_risk_score(blood_values)
 
+    liver_sprite_index = "0" + str(9 - round(risk_score["index_score"] * 10))
+
     return {
         "blood_values": {k: v for k, v in blood_values.items() if k in ["ALT", "AST", "CRP"]},
         "index": risk_score["index_score"],
         "risks": risk_score["risks"],
-        "liver_sprite": ""
+        "liver_sprite": f"/images/liver_sprite__{liver_sprite_index}.png",
     }
 
 
