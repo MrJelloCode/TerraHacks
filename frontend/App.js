@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, CSSProperties } from 'react';
 import { Animated, View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
 import Reports from './reports';
 import MyData from './myData';
-import { SkipBack, Rewind, FastForward, SkipForward } from 'lucide-react-native';
+import { RotateCcw, SkipBack, Rewind, FastForward, SkipForward } from 'lucide-react-native';
+
+import { BallLoader } from "react-spinners";
+
 
 const SECTION_SPACING = 5;
 
@@ -20,11 +23,54 @@ const COLORS = {
   scoreHigh: '#ef476f'
 };
 
+
+const override = {
+  display: "block",
+  margin: "0 auto",
+  borderColor: "red",
+};
+
+export function LoadingBar({ loading }) {
+  return (
+    <div>
+      <p>Fetching information from server...</p>
+      <BallLoader
+        color={COLORS.primary}
+        loading={loading}
+        cssOverride={override}
+        size={150}
+        aria-label="Loading Spinner"
+        data-testid="loader"
+      />
+    </div>
+  );
+}
+
 export default function App() {
   const [bgAnim] = useState(new Animated.Value(0));
   const [modalScale] = useState(new Animated.Value(0.8));
   const [modalOpacity] = useState(new Animated.Value(0));
   const [currentDate, setCurrentDate] = useState(new Date('2025-08-03'));
+  const [loading, setLoading] = useState(true);
+
+  const [dayData, setDayData] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`https://api.example.com/data?date=${formatDate(currentDate)}`);
+        const data = await response.json();
+        setDayData(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [currentDate]);
+
 
   useEffect(() => {
     Animated.loop(
@@ -37,22 +83,22 @@ export default function App() {
 
   const [idleAnim] = useState(new Animated.Value(0));
 
-useEffect(() => {
-  Animated.loop(
-    Animated.sequence([
-      Animated.timing(idleAnim, {
-        toValue: -10,
-        duration: 1500,
-        useNativeDriver: true
-      }),
-      Animated.timing(idleAnim, {
-        toValue: 0,
-        duration: 1500,
-        useNativeDriver: true
-      })
-    ])
-  ).start();
-}, []);
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(idleAnim, {
+          toValue: -10,
+          duration: 1500,
+          useNativeDriver: true
+        }),
+        Animated.timing(idleAnim, {
+          toValue: 0,
+          duration: 1500,
+          useNativeDriver: true
+        })
+      ])
+    ).start();
+  }, []);
 
 
   const bgInterpolate = bgAnim.interpolate({
@@ -123,104 +169,105 @@ useEffect(() => {
   if (showmyData) return <MyData goBack={() => setShowmyData(false)} bgInterpolate={bgInterpolate} />;
 
   return (
-    <Animated.View style={[styles.safeArea, { backgroundColor: bgInterpolate }]}> 
-      <Animated.ScrollView style={[styles.container, { backgroundColor: bgInterpolate }]} contentContainerStyle={styles.scrollContent}>
+    <div>
+      <Animated.View style={[styles.safeArea, { backgroundColor: bgInterpolate }]}>
+        <Animated.ScrollView style={[styles.container, { backgroundColor: bgInterpolate }]} contentContainerStyle={styles.scrollContent}>
 
-        <View style={[styles.header, { marginBottom: SECTION_SPACING }]}><Text style={styles.headerText}>Welcome, Malaravan</Text></View>
+          <View style={[styles.header, { marginBottom: SECTION_SPACING }]}><Text style={styles.headerText}>Welcome, Malaravan</Text></View>
 
-        <View style={[styles.liverBox, { marginBottom: SECTION_SPACING }]}>
-          <Text style={[styles.boxLabel2, { marginBottom: 10 }]}>{formatDate(currentDate)}</Text>
-          
-          <Animated.Image
-  source={require('./assets/liver_sprite_00.png')}
-  style={{
-    width: 64 * 3,
-    height: 64 * 3,
-    marginBottom: 12,
-    transform: [{ translateY: idleAnim }]
-  }}
-/>
+          <View style={[styles.liverBox, { marginBottom: SECTION_SPACING }]}>
+            <Text style={[styles.boxLabel2, { marginBottom: 10 }]}>{formatDate(currentDate)}</Text>
 
-          <View style={{ alignItems: 'center' }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%', marginTop: 20 }}>
-              <TouchableOpacity onPress={() => changeDate(-7)}><Text style={{ fontSize: 28 }}><SkipBack /></Text></TouchableOpacity>
-              <TouchableOpacity onPress={() => changeDate(-1)}><Text style={{ fontSize: 28 }}><Rewind /></Text></TouchableOpacity>
-              <TouchableOpacity onPress={() => changeDate(1)}><Text style={{ fontSize: 28 }}><FastForward /></Text></TouchableOpacity>
-              <TouchableOpacity onPress={() => changeDate(7)}><Text style={{ fontSize: 28 }}><SkipForward /></Text></TouchableOpacity>
+            {loading ? <LoadingBar loading={loading} /> : 
+              <Animated.Image
+                source={dayData?.liverSprite || require('./assets/liver_sprite_00.png')}
+                style={{
+                  width: 64 * 3,
+                  height: 64 * 3,
+                  marginBottom: 12,
+                  transform: [{ translateY: idleAnim }]
+                }}
+              />
+            }
+
+            <View style={{ alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%', marginTop: 20 }}>
+                <TouchableOpacity onPress={() => changeDate(-7)}><Text style={{ fontSize: 28 }}><SkipBack /></Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => changeDate(-1)}><Text style={{ fontSize: 28 }}><Rewind /></Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => setCurrentDate(new Date('2025-08-02'))}><Text style={{ fontSize: 28 }}><RotateCcw /></Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => changeDate(1)}><Text style={{ fontSize: 28 }}><FastForward /></Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => changeDate(7)}><Text style={{ fontSize: 28 }}><SkipForward /></Text></TouchableOpacity>
+              </View>
             </View>
-            <TouchableOpacity onPress={() => setCurrentDate(new Date('2025-08-03'))} style={{ marginTop: 14, backgroundColor: '#fff', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: COLORS.primary }}>
-              <Text style={{ color: COLORS.primary, fontWeight: '600' }}>Reset Date</Text>
-          
+          </View>
+
+          <View style={styles.watchSummaryContainer}>
+            {watchData.map((item, index) => (
+              <View key={index} style={styles.watchDataBox}>
+                <Text style={styles.watchDataLabel}>{item.label}</Text>
+                <Text style={styles.watchDataValue}>{item.value}</Text>
+              </View>
+            ))}
+          </View>
+
+          <TouchableOpacity style={[styles.combinedRiskBoxFull, { marginBottom: SECTION_SPACING }]} activeOpacity={0.85} onPress={() => openModal(setRiskModalVisible)}>
+            <View>
+              <Text style={[styles.boxLabel, , { color: COLORS.textPrimary }]}>⚠️ Risk Analysis (Click for more details)</Text>
+              <View style={styles.bullet}><Text style={styles.bulletText}>• ALT elevated - potential liver strain</Text></View>
+              <View style={styles.bullet}><Text style={styles.bulletText}>• Low sleep - less than 5h average</Text></View>
+              <View style={styles.bullet}><Text style={styles.bulletText}>• High stress - above normal threshold</Text></View>
+            </View>
+            <View style={styles.scoreCircleWrapper}>
+              <View style={[styles.scoreCircle, { borderColor: getScoreColor(), backgroundColor: '#fff' }]}><Text style={styles.scoreText}>{score}</Text></View>
+            </View>
+          </TouchableOpacity>
+
+          <Modal visible={riskModalVisible} animationType="none" transparent>
+            <View style={styles.modalBackdrop}>
+              <Animated.View style={[styles.modalBox, styles.enhancedModalBox, { transform: [{ scale: modalScale }], opacity: modalOpacity }]}>
+                <Text style={styles.modalTitle}>Risk Details</Text>
+                <Text style={styles.modalText}>- ALT is elevated, indicating potential liver strain.</Text>
+                <Text style={styles.modalText}>- Sleep patterns below 5hr average last 3 days.</Text>
+                <TouchableOpacity onPress={() => closeModal(setRiskModalVisible)} style={[styles.modalButton, { backgroundColor: COLORS.danger }]}>
+                  <Text style={[styles.modalButtonText, { color: '#fff' }]}>Close</Text>
+                </TouchableOpacity>
+              </Animated.View>
+            </View>
+          </Modal>
+
+          <TouchableOpacity style={[styles.simulateButton, { marginBottom: SECTION_SPACING }]} activeOpacity={0.8} onPress={() => openModal(setSimulateModalVisible)}>
+            <Text style={styles.simulateText}>Simulate a Situation</Text>
+          </TouchableOpacity>
+
+          <Modal visible={simulateModalVisible} animationType="none" transparent>
+            <View style={styles.modalBackdrop}>
+              <Animated.View style={[styles.modalBox, { transform: [{ scale: modalScale }], opacity: modalOpacity }]}>
+                <Text style={styles.modalTitle}>Simulation</Text>
+                <TextInput style={styles.simulateInput} multiline placeholder="e.g. What if I was 30 years older maintaining the same exercise?" value={simulationText} onChangeText={setSimulationText} />
+                <View style={styles.modalButtonRow}>
+                  <TouchableOpacity onPress={() => closeModal(setSimulateModalVisible)} style={styles.modalButtonAlt} activeOpacity={0.85}>
+                    <Text style={styles.modalButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => closeModal(setSimulateModalVisible)} style={styles.modalButton} activeOpacity={0.85}>
+                    <Text style={styles.modalButtonText}>Run Simulation</Text>
+                  </TouchableOpacity>
+                </View>
+              </Animated.View>
+            </View>
+          </Modal>
+
+          <View style={styles.buttonRow}>
+            <TouchableOpacity style={styles.navButton} activeOpacity={0.85} onPress={() => setShowReports(true)}>
+              <Text style={styles.navButtonText}>View Reports</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navButton} activeOpacity={0.85} onPress={() => setShowmyData(true)}>
+              <Text style={styles.navButtonText}>Medical Data</Text>
             </TouchableOpacity>
           </View>
-        </View>
 
-        <View style={styles.watchSummaryContainer}>
-          {watchData.map((item, index) => (
-            <View key={index} style={styles.watchDataBox}>
-              <Text style={styles.watchDataLabel}>{item.label}</Text>
-              <Text style={styles.watchDataValue}>{item.value}</Text>
-            </View>
-          ))}
-        </View>
-
-        <TouchableOpacity style={[styles.combinedRiskBoxFull, { marginBottom: SECTION_SPACING }]} activeOpacity={0.85} onPress={() => openModal(setRiskModalVisible)}>
-          <View>
-            <Text style={[styles.boxLabel,, { color: COLORS.textPrimary }]}>⚠️Risk Analysis (Click for more details)</Text>
-            <View style={styles.bullet}><Text style={styles.bulletText}>• ALT elevated – potential liver strain</Text></View>
-            <View style={styles.bullet}><Text style={styles.bulletText}>• Low sleep – less than 5h average</Text></View>
-            <View style={styles.bullet}><Text style={styles.bulletText}>• High stress – above normal threshold</Text></View>
-          </View>
-          <View style={styles.scoreCircleWrapper}>
-            <View style={[styles.scoreCircle, { borderColor: getScoreColor(), backgroundColor: '#fff' }]}><Text style={styles.scoreText}>{score}</Text></View>
-          </View>
-        </TouchableOpacity>
-
-        <Modal visible={riskModalVisible} animationType="none" transparent>
-          <View style={styles.modalBackdrop}>
-            <Animated.View style={[styles.modalBox, styles.enhancedModalBox, { transform: [{ scale: modalScale }], opacity: modalOpacity }]}>
-              <Text style={styles.modalTitle}>Risk Details</Text>
-              <Text style={styles.modalText}>- ALT is elevated, indicating potential liver strain.</Text>
-              <Text style={styles.modalText}>- Sleep patterns below 5hr average last 3 days.</Text>
-              <TouchableOpacity onPress={() => closeModal(setRiskModalVisible)} style={[styles.modalButton, { backgroundColor: COLORS.danger }]}>
-                <Text style={[styles.modalButtonText, { color: '#fff' }]}>Close</Text>
-              </TouchableOpacity>
-            </Animated.View>
-          </View>
-        </Modal>
-
-        <TouchableOpacity style={[styles.simulateButton, { marginBottom: SECTION_SPACING }]} activeOpacity={0.8} onPress={() => openModal(setSimulateModalVisible)}>
-          <Text style={styles.simulateText}>Simulate a Situation</Text>
-        </TouchableOpacity>
-
-        <Modal visible={simulateModalVisible} animationType="none" transparent>
-          <View style={styles.modalBackdrop}>
-            <Animated.View style={[styles.modalBox, { transform: [{ scale: modalScale }], opacity: modalOpacity }]}>
-              <Text style={styles.modalTitle}>Simulation</Text>
-              <TextInput style={styles.simulateInput} multiline placeholder="e.g. What if I drank 4 beers and only slept 3 hours?" value={simulationText} onChangeText={setSimulationText} />
-              <View style={styles.modalButtonRow}>
-                <TouchableOpacity onPress={() => closeModal(setSimulateModalVisible)} style={styles.modalButtonAlt} activeOpacity={0.85}>
-                  <Text style={styles.modalButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => closeModal(setSimulateModalVisible)} style={styles.modalButton} activeOpacity={0.85}>
-                  <Text style={styles.modalButtonText}>Run Simulation</Text>
-                </TouchableOpacity>
-              </View>
-            </Animated.View>
-          </View>
-        </Modal>
-
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.navButton} activeOpacity={0.85} onPress={() => setShowReports(true)}>
-            <Text style={styles.navButtonText}>View Reports</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navButton} activeOpacity={0.85} onPress={() => setShowmyData(true)}>
-            <Text style={styles.navButtonText}>Medical Data</Text>
-          </TouchableOpacity>
-        </View>
-
-      </Animated.ScrollView>
-    </Animated.View>
+        </Animated.ScrollView>
+      </Animated.View>
+    </div>
   );
 }
 
@@ -358,7 +405,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333'
-  },boxLabel2: {
+  }, boxLabel2: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#333'
@@ -452,7 +499,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.textPrimary
-  },   liverBox: {
+  }, liverBox: {
     backgroundColor: COLORS.secondary,
     borderRadius: 12,
     padding: 18,
@@ -506,7 +553,7 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary
   },
 
-     combinedRiskBoxFull: {
+  combinedRiskBoxFull: {
     flexDirection: 'row',
     backgroundColor: '#e8f4fc',
     borderRadius: 12,
@@ -519,7 +566,7 @@ const styles = StyleSheet.create({
   scoreCircleWrapper: {
     paddingLeft: 0
   },
-   watchSummaryContainer: {
+  watchSummaryContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',

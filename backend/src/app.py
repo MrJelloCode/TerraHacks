@@ -4,20 +4,28 @@ from datetime import datetime
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi import HTTPException
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from simulation.eval import evaluate_index_and_risks
-from simulation.eval import simulate_blood_values
-from simulation.eval import simulate_image
+from simulation.eval import full_evaluation
 
 from .database import db
+from .gemini import call_gemini_json
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
-IMAGES_DIR = Path(__file__).parent / "images"
+IMAGES_DIR = Path(__file__).parent.parent / "images"
 IMAGES_DIR.mkdir(exist_ok=True)
+
+# serve static images from the images directory
+# yes yes not prod recommended
+app.mount("/images", StaticFiles(directory=IMAGES_DIR), name="images")
+
+async def get_health_or_none():
+    return await db.physical_attributes_collection.find_one({})
 
 
 class SimulationRequest(BaseModel):
@@ -50,39 +58,45 @@ async def get_or_simulate_day(req: SimulationRequest):
     organ = req.organ
     prompt = req.prompt
 
-    last_known_blood_values = {
-        "ALT": 35,
-        "AST": 30,
-        "BUN": 15,
-        "Creatinine": 0.8,
-        "Glucose": 90,
-    }
-    blood_values = simulate_blood_values(organ, prompt, last_known_blood_values)
-    index, risks = evaluate_index_and_risks(organ, prompt, {}, blood_values)
-    image_path = await simulate_image(organ, prompt, rounded_ts)
+    # get health
+    # for now theres only 1 so we can just get the first one
+    result = await db.physical_attributes_collection.find_one({})
+    if not result:
+        raise HTTPException(status_code=404, detail="Physical attributes not found")
 
-    evaluation = {
-        "index": index,
-        "risks": risks,
-        "blood_values": blood_values,
-        "image_path": str(image_path),
-    }
+    physical_attributes = dict(result)
+    print("Physical attributes:", physical_attributes)
+    print(full_evaluation(physical_attributes))
 
-    logger.info("Simulated evaluation: %s", evaluation)
+    return {}
 
-    await db.default.insert_one(
-        {
-            "timestamp": rounded_ts,
-            "evaluation": evaluation,
-            "simulated": True,
-        },
-    )
+    # send index, risks, 3 blood values
 
-    return {
-        "timestamp": rounded_ts,
-        "evaluation": evaluation,
-        "simulated": True,
-    }
+    # index, risks = evaluate_index_and_risks(organ, prompt, {}, blood_values)
+    # image_path = await simulate_image(organ, prompt, rounded_ts)
+
+    # evaluation = {
+    #     "index": index,
+    #     "risks": risks,
+    #     "blood_values": blood_values,
+    #     "image_path": str(image_path),
+    # }
+
+    # logger.info("Simulated evaluation: %s", evaluation)
+
+    # await db.default.insert_one(
+    #     {
+    #         "timestamp": rounded_ts,
+    #         "evaluation": evaluation,
+    #         "simulated": True,
+    #     },
+    # )
+
+    # return {
+    #     "timestamp": rounded_ts,
+    #     "evaluation": evaluation,
+    #     "simulated": True,
+    # }
 
 
 @app.get("/reset_simulations/")
@@ -93,27 +107,61 @@ async def reset_simulations():
     }
 
 
+
 @app.post("/summarize")
 async def summarize():
-    return {"summary": "This is a placeholder summary from Gemini."}
+    health = await get_health_or_none()
+    if not health:
+        health = {}
+
+    prompt = f"""Summarize the following health data in a concise manner:
+    Physical Attributes: {health}
+
+    Respond using the following JSON format:
+    {{
+        "summary": "Your summary here"
+    }}
+    """
+
+    result = call_gemini_json(prompt)
+    if "summary" in result:
+        return result
+
+    return {"summary": "Failed to fetch from Gemini."}
 
 
 class PhysicalAttributes(BaseModel):
     age: int
     height: float
     weight: float
-    is_male: bool
+    is_physically_active: bool
     is_smoker: bool
     alcohol_consumption: float
 
 
 @app.post("/submit-physical-attributes/")
 async def submit_physical_attributes(attrs: PhysicalAttributes):
-    return {"summary": "This is a placeholder summary from Gemini."}
+    update_data = attrs.model_dump()
+
+    # Update the first document in the collection
+    result = await db.physical_attributes_collection.update_one(
+        {}, {"$set": update_data},
+    )
+
+    # Optional: Insert if nothing was matched
+    if result.matched_count == 0:
+        await db.physical_attributes_collection.insert_one(update_data)
+
+    # Return the updated document (or the inserted one)
+    updated = await db.physical_attributes_collection.find_one({})
+    if "_id" in updated:
+        updated["_id"] = str(updated["_id"])
+    return {"updated": updated}
 
 
 @app.post("/add_actual_entry/")
 async def add_actual_entry(steps_count: int, heart_rate: int, active_energy_burned: int):
+    # NON MVP
     pass
 
 

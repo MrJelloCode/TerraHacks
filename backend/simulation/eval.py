@@ -90,6 +90,11 @@ def evaluate_risk_score(blood_values: dict[str, float]) -> dict:
     }
 
 
+def full_evaluation(physical_attributes: dict) -> dict:
+    blood_values = evaluate_blood_values(physical_attributes)
+    return evaluate_risk_score(blood_values)
+
+
 def simulate_image(organ: str, prompt: str, series: dict, index: float, risks_formatted: str) -> str:
     image_id = round(index * 10) - 1
     return f"images/simulated_{organ}_{image_id}.png"
