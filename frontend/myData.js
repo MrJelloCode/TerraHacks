@@ -7,11 +7,8 @@ const MyData = ({ goBack }) => {
     gender: '',
     weight: '',
     height: '',
-    exercise: '',
     alcohol: '',
-    smoking: '',
-    diet: '',
-    sleep: ''
+    smoking: ''
   });
 
   const handleChange = (field, value) => {
@@ -47,11 +44,8 @@ const MyData = ({ goBack }) => {
           gender: 'Gender',
           weight: 'Weight (kg)',
           height: 'Height (cm)',
-          exercise: 'Amount of Exercise (hrs/week)',
           alcohol: 'Alcohol Consumption (drinks/week)',
-          smoking: 'Smoking Status (Yes/No)',
-          diet: 'Diet Type (Vegetarian, Vegan, etc.)',
-          sleep: 'Hours of Sleep per Night'
+          smoking: 'Smoking Status (Yes/No)'
         }).map(([key, label]) => (
           <View key={key} style={styles.inputGroup}>
             <Text style={styles.label}>{label}</Text>
@@ -98,12 +92,12 @@ const styles = StyleSheet.create({
     padding: 20
   },
   inputGroup: {
-    marginBottom: 16
+    marginBottom: 7
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 15,
     color: '#023047'
   },
   input: {
