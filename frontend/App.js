@@ -244,9 +244,9 @@ export default function App() {
             <View style={styles.modalBackdrop}>
               <Animated.View style={[styles.modalBox, styles.enhancedModalBox, { transform: [{ scale: modalScale }], opacity: modalOpacity }]}>
                 <Text style={styles.modalTitle}>Risk Details</Text>
-                  <Text style={styles.modalText}>{dayData["risks"].size > 0 ? dayData["risks"][0] : ""}</Text>
-                  <Text style={styles.modalText}>{dayData["risks"].size > 1 ? dayData["risks"][1] : ""}</Text>
-                  <Text style={styles.modalText}>{dayData["risks"].size > 2 ? dayData["risks"][2] : ""}</Text>
+                  <Text style={styles.modalText}>{dayData && dayData["risks"].size > 0 ? dayData["risks"][0] : ""}</Text>
+                  <Text style={styles.modalText}>{dayData && dayData["risks"].size > 1 ? dayData["risks"][1] : ""}</Text>
+                  <Text style={styles.modalText}>{dayData && dayData["risks"].size > 2 ? dayData["risks"][2] : ""}</Text>
                 <TouchableOpacity onPress={() => closeModal(setRiskModalVisible)} style={[styles.modalButton, { backgroundColor: COLORS.danger }]}>
                   <Text style={[styles.modalButtonText, { color: '#fff' }]}>Close</Text>
                 </TouchableOpacity>
