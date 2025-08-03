@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Animated } from 'react-native';
 import Svg, { Line, Polyline, Text as SvgText } from 'react-native-svg';
+import axios from 'axios';
 
 const Reports = ({ goBack }) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -13,9 +14,23 @@ const Reports = ({ goBack }) => {
   const stepY = chartHeight / 5;
   const days = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 
-  const altData = [30, 45, 60, 58, 55, 43, 40];
-  const bpmData = [70, 72, 68, 75, 71, 69, 70];
-  const sleepData = [6.5, 7, 5, 4.5, 6, 7.2, 7];
+  const [altData, setAltData] = useState([30, 45, 60, 58, 55, 43, 40]);
+  const [bpmData, setBpmData] = useState([70, 72, 68, 75, 71, 69, 70]);
+  const [sleepData, setSleepData] = useState([6.5, 7, 5, 4.5, 6, 7.2, 7]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/reports');
+        setAltData(response.data.altData);
+        setBpmData(response.data.bpmData);
+        setSleepData(response.data.sleepData);
+      } catch (error) {
+        console.error('Error fetching report data:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const chartConfigs = [
     { title: 'ALT Levels', data: altData, color: '#ff4d6d' },
