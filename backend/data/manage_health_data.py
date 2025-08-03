@@ -29,26 +29,29 @@ def grouped_data_to_mongodb(data):
     new_data = []
 
     for key, value in data.items():
+        if "HKQuantityTypeIdentifierStepCount" in value:
+            value["step_count"] = value.pop("HKQuantityTypeIdentifierStepCount")
+        if "HKQuantityTypeIdentifierHeartRate" in value:
+            value["heart_rate"] = value.pop("HKQuantityTypeIdentifierHeartRate")
+        if "HKQuantityTypeIdentifierActiveEnergyBurned" in value:
+            value["active_energy_burned"] = value.pop("HKQuantityTypeIdentifierActiveEnergyBurned")
+        if "HKCategoryTypeIdentifierSleepAnalysis" in value:
+            value.pop("HKCategoryTypeIdentifierSleepAnalysis")
+
         new_data.append({
-            "timestamp": key,
-            "simulated": value,
-            "evaluation": {}
+            "timestamp": datetime.strptime(key, "%Y-%m-%d").strftime("%Y-%m-%dT%H:%M:%SZ"),  # noqa: DTZ007
+            "series": value,
+            "evaluation": {},
         })
 
     return new_data
 
 if __name__ == "__main__":
-    # with Path("./app/apple_watch_7day_raw_data.json").open() as fp:
-    #     data = json.load(fp)
-    #     grouped_data = group_apple_watch_data(data)
+    with Path("./data/apple_watch_7day_raw_data.json").open() as fp:
+        data = json.load(fp)
+        grouped_data = group_apple_watch_data(data)
 
-    # with Path("./app/grouped_watch_data.json").open("w") as fp:
-    #     json.dump(grouped_data, fp, indent=2)
-
-    with open("grouped_watch_data.json") as file:
-        data = json.load(file)
-    
-    mongodb_data = grouped_data_to_mongodb(data)
-    with open("database_schema.json", "w") as file:
+    mongodb_data = grouped_data_to_mongodb(grouped_data)
+    with open("./data/database_schema.json", "w") as file:
         json.dump(mongodb_data, file, indent=2)
 
