@@ -229,9 +229,9 @@ export default function App() {
               <div>
                 <View>
                   <Text style={[styles.boxLabel, , { color: COLORS.textPrimary }]}>⚠️ Risk Analysis</Text>
-                  <View style={styles.bullet}><Text style={styles.bulletText}>{dayData["risks"].size > 0 ? dayData["risks"][0] : ""}</Text></View>
-                  <View style={styles.bullet}><Text style={styles.bulletText}>{dayData["risks"].size > 1 ? dayData["risks"][1] : ""}</Text></View>
-                  <View style={styles.bullet}><Text style={styles.bulletText}>{dayData["risks"].size > 2 ? dayData["risks"][2] : ""}</Text></View>
+                  <View style={styles.bullet}><Text style={styles.bulletText}>{dayData && dayData["risks"].size > 0 ? dayData["risks"][0] : ""}</Text></View>
+                  <View style={styles.bullet}><Text style={styles.bulletText}>{dayData && dayData["risks"].size > 1 ? dayData["risks"][1] : ""}</Text></View>
+                  <View style={styles.bullet}><Text style={styles.bulletText}>{dayData && dayData["risks"].size > 2 ? dayData["risks"][2] : ""}</Text></View>
                 </View>
                 <View style={styles.scoreCircleWrapper}>
                   <View style={[styles.scoreCircle, { borderColor: getScoreColor(), backgroundColor: '#fff' }]}><Text style={styles.scoreText}>{dayData["index_score"]}</Text></View>
