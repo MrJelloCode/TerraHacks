@@ -25,20 +25,30 @@ def group_apple_watch_data(data):
 
     return grouped
 
-# list = ["2025-07-08", 68, 78, 102] | example of an input list
-list = [timestamp, step_count, heart_rate, active_energy_burned]
+def grouped_data_to_mongodb(data):
+    new_data = []
 
-def inputting_data(list):
-   return {"timestamps": list[0],
-     "step_count": list[1],
-     "heart_rate": list[2],
-     "active_energy_burned": list[3]}
+    for key, value in data.items():
+        new_data.append({
+            "timestamp": key,
+            "simulated": value,
+            "evaluation": {}
+        })
 
+    return new_data
 
 if __name__ == "__main__":
-    with Path("./app/apple_watch_7day_raw_data.json").open() as fp:
-        data = json.load(fp)
-        grouped_data = group_apple_watch_data(data)
+    # with Path("./app/apple_watch_7day_raw_data.json").open() as fp:
+    #     data = json.load(fp)
+    #     grouped_data = group_apple_watch_data(data)
 
-    with Path("./app/grouped_watch_data.json").open("w") as fp:
-        json.dump(grouped_data, fp, indent=2)
+    # with Path("./app/grouped_watch_data.json").open("w") as fp:
+    #     json.dump(grouped_data, fp, indent=2)
+
+    with open("grouped_watch_data.json") as file:
+        data = json.load(file)
+    
+    mongodb_data = grouped_data_to_mongodb(data)
+    with open("database_schema.json", "w") as file:
+        json.dump(mongodb_data, file, indent=2)
+
