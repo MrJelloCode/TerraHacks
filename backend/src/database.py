@@ -1,8 +1,10 @@
-import logging
 import json
+import logging
 import os
+from datetime import datetime
 from typing import Any
 
+import anyio
 from motor.motor_asyncio import AsyncIOMotorClient
 from motor.motor_asyncio import AsyncIOMotorCollection
 
@@ -29,34 +31,22 @@ class MongoDB:
         self._uri = uri
         self._db_name = db_name
         self._collection_name = collection_name
+        self._physical_attributes_collection_name = "physical_attributes"
 
         self._client: AsyncIOMotorClient | None = None
-        self._collection: AsyncIOMotorCollection | None = None
+        self.collection: AsyncIOMotorCollection | None = None
+        self.physical_attributes_collection: AsyncIOMotorCollection | None = None
 
     async def connect(self):
         self._client = AsyncIOMotorClient(self._uri)
         db = self._client[self._db_name]
-        self._collection = db[self._collection_name]
+        self.collection = db[self._collection_name]
+        self.physical_attributes_collection = db[self._physical_attributes_collection_name]
         logger.info("Connected to MongoDB '%s.%s'", self._db_name, self._collection_name)
-        
-        record = await db.find_one()
-        if record is None:
-            logger.info("Initializing database with schema.")
-            await self.setup_collection()
 
-    async def setup_collection(self):
-        with open("database_schema.json") as file:
-            database_schema = json.load(file)
-
-        await self.collection.insert_many(database_schema)     
-
-
-    @property
-    def collection(self) -> AsyncIOMotorCollection:
-        if not self._collection:
-            err = DatabaseNotConnectedError()
-            raise err
-        return self._collection
+    async def populate(self, data: list[dict[str, Any]]):
+        for item in data:
+            await self.collection.insert_one(item)
 
 
 db = MongoDB(
@@ -64,3 +54,25 @@ db = MongoDB(
     DB_NAME,
     DB_COLLECTION,
 )
+
+if __name__ == "__main__":
+    import asyncio
+
+    async def main():
+        await db.connect()
+        logger.info("Database connected successfully.")
+
+        # async with await anyio.open_file("./data/database_schema.json", "r") as fp:
+        #     schema = json.loads(await fp.read())
+        #     for item in schema:
+        #         item["timestamp"] = datetime.fromisoformat(item["timestamp"])
+        # await db.populate(schema)
+
+        async with await anyio.open_file("./data/sample_physical_data.json", "r") as fp:
+            sample_physical_data = json.loads(await fp.read())
+
+            await db.physical_attributes_collection.delete_many({})
+            await db.physical_attributes_collection.insert_one(sample_physical_data)
+            logger.info("Database populated with initial data.")
+
+    asyncio.run(main())

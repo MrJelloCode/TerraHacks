@@ -1,0 +1,13 @@
+{
+  "_id": "malvaran",
+  "physical_details": {
+    "height": 2
+  },
+  "simulated_data": {
+    "2025-04-20": {
+      "blood_values": {},
+      "index": 2,
+      "risks": []
+    }
+  }
+}
