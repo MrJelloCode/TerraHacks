@@ -1,20 +1,6 @@
 [
   {
     "type": "HKQuantityTypeIdentifierHeartRate",
-    "startDate": "2020-06-13T02:50:23+09:00",
-    "endDate": "2020-06-13T02:50:23+09:00",
-    "value": 79.5536,
-    "unit": "count/min"
-  },
-  {
-    "type": "HKQuantityTypeIdentifierHeartRate",
-    "startDate": "2020-06-13T02:55:10+09:00",
-    "endDate": "2020-06-13T02:55:10+09:00",
-    "value": 81.0,
-    "unit": "count/min"
-  },
-  {
-    "type": "HKQuantityTypeIdentifierHeartRate",
     "startDate": "2020-06-13T02:57:08+09:00",
     "endDate": "2020-06-13T02:57:08+09:00",
     "value": 85.0,

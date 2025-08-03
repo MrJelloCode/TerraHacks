@@ -97,6 +97,20 @@ async def reset_simulations():
 async def summarize():
     return {"summary": "This is a placeholder summary from Gemini."}
 
+
+class PhysicalAttributes(BaseModel):
+    age: int
+    height: float
+    weight: float
+    is_male: bool
+    is_smoker: bool
+    alcohol_consumption: float
+
+@app.post("/submit-physical-attributes/")
+async def submit_physical_attributes(attrs: PhysicalAttributes):
+    return {"summary": "This is a placeholder summary from Gemini."}
+
+
 @app.post("/add_actual_entry/")
 async def add_actual_entry(steps_count: int, heart_rate: int, active_energy_burned: int):
     pass

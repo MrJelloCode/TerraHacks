@@ -5,32 +5,40 @@ from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 
 
-class HealthDataset(Dataset):
-    def __init__(self, series_data, static_data, labels):
-        """
-        series_data: (N, 24, 3)
-        static_data: (N, 6)
-        labels: (N, 6)
-        """
-        self.series_data = torch.tensor(series_data, dtype=torch.float32)
-        self.static_data = torch.tensor(static_data, dtype=torch.float32)
-        self.labels = torch.tensor(labels, dtype=torch.float32)
+class OrganHealthDataset(Dataset):
+    def __init__(self, data_list):
+        self.data = data_list
+
+        self.blood_keys = ["ALT", "AST", "GGT", "Triglycerides", "CRP", "Ferritin"]
+        self.physical_keys = ["age", "weight", "sex", "height", "alcohol_consumption", "is_smoker"]
 
     def __len__(self):
-        return len(self.series_data)
+        return len(self.data)
 
     def __getitem__(self, idx):
+        sample = self.data[idx]
+
+        # Convert series_data to [3, 24] float32 tensor
+        series = torch.tensor(sample["series_data"], dtype=torch.float32)
+
+        # Convert physical attributes to [6] float32 tensor
+        physical = torch.tensor([sample["physical_attributes"][key] for key in self.physical_keys], dtype=torch.float32)
+
+        # Convert blood values to [6] float32 tensor (target)
+        blood = torch.tensor([sample["blood_values"][key] for key in self.blood_keys], dtype=torch.float32)
+
         return {
-            "series": self.series_data[idx],
-            "static": self.static_data[idx],
-            "labels": self.labels[idx],
+            "series": series,             # [3, 24]
+            "physical": physical,         # [6]
+            "blood": blood,               # [6]
         }
+
 
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model = HealthScoreNet().to(device)
-    dataset = HealthSeriesDataset(5)
+    dataset = OrganHealthDataset(5)
     loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
     loss_fn = nn.MSELoss()

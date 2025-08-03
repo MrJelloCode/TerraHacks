@@ -1,0 +1,9 @@
+{
+    "_id": "malaravan",
+    "age": 18,
+    "is_male": true,
+    "weight": 50.5,
+    "height": 177.0,
+    "alcohol_consumption": 0.0,
+    "is_smoker": false
+}
