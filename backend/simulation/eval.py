@@ -1,9 +1,31 @@
 import torch
-from neural_network.neural_net import EstimateBloodAttributesNet
-from neural_network.neural_net import RiskScoreNet
-from normalization import denormalize_blood_values
-from normalization import normalize_blood_values
-from normalization import normalize_physical_attributes
+
+from .neural_network.neural_net import EstimateBloodAttributesNet
+from .neural_network.neural_net import RiskScoreNet
+from .normalization import denormalize_blood_values
+from .normalization import normalize_blood_values
+from .normalization import normalize_physical_attributes
+
+import numpy as np
+
+
+def normalize_series_data(series_data: list[list[float]]) -> torch.Tensor:
+    RANGES = {
+        "HKQuantityTypeIdentifierHeartRate": (40.0, 180.0),
+        "HKQuantityTypeIdentifierStepCount": (0.0, 3000.0),
+        "HKQuantityTypeIdentifierRespiratoryRate": (10.0, 25.0),
+    }
+
+    keys = list(RANGES.keys())
+    normalized = []
+
+    for i, feature in enumerate(series_data):
+        min_val, max_val = RANGES[keys[i]]
+        arr = np.array(feature, dtype=np.float32)
+        norm = (arr - min_val) / (max_val - min_val + 1e-8)
+        normalized.append(norm)
+
+    return torch.tensor(normalized, dtype=torch.float32).T.unsqueeze(0)
 
 risk_mapping = [
     "Non-Alcoholic Fatty Liver Disease (NAFLD)",
@@ -31,7 +53,7 @@ risk_model.load_state_dict(torch.load("best_risk_score_model.pt", map_location=d
 risk_model.eval()
 
 
-def evaluate_blood_values(physical_attributes: dict) -> dict:
+def evaluate_blood_values(series_data, physical_attributes: dict) -> dict:
     """
     Given physical attributes, predict blood values using a pre-trained model.
     Assumes a dummy series input for now (can be replaced with real time-series).
@@ -54,8 +76,9 @@ def evaluate_blood_values(physical_attributes: dict) -> dict:
         .to(device)
     )  # shape: (1, 6)
 
-    # Dummy 24x3 time-series input (can replace with real data)
-    series_tensor = torch.zeros((1, 24, 3), dtype=torch.float32).to(device)
+    series_tensor = normalize_series_data(series_data).to(device)  # shape: (1, 24, 3)
+
+    print("SERIES TENSOR", series_tensor.shape)
 
     # Inference
     with torch.no_grad():
@@ -102,11 +125,10 @@ def simulate_image(organ: str, prompt: str, series: dict, index: float, risks_fo
 
 if __name__ == "__main__":
     phsattributes = {
-        "_id": "malaravan",
         "age": 18,
         "is_physically_active": True,
         "weight": 50.5,
-        "height": 177.0,
+        "height": 170.0,
         "alcohol_consumption": 0.0,
         "is_smoker": False,
     }

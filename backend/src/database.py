@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from datetime import datetime
+import random
 from typing import Any
 
 import anyio
@@ -55,6 +56,37 @@ db = MongoDB(
     DB_COLLECTION,
 )
 
+def mongoify_raw_series(raw_data: dict[str, Any]) -> list[dict[str, Any]]:
+    grouped = {}
+
+    for entry in raw_data:
+        # Convert ISO datetime to just the date (e.g., '2020-06-13')
+        dt = datetime.fromisoformat(entry["startDate"])
+        day_str = dt.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+
+        if entry["type"] not in [
+            "HKQuantityTypeIdentifierHeartRate",
+            "HKQuantityTypeIdentifierStepCount",
+            "HKQuantityTypeIdentifierRespiratoryRate",
+        ]:
+            continue
+
+        if day_str not in grouped:
+            # respiratory data not present in sample population
+            grouped[day_str] = {"HKQuantityTypeIdentifierHeartRate": [], "HKQuantityTypeIdentifierStepCount": [], "HKQuantityTypeIdentifierRespiratoryRate": [random.uniform(10.0, 13.0) for _ in range(24)]}
+
+        # Append value to correct type and date
+        grouped[day_str][entry["type"]].append(entry["value"])
+
+    # Convert to desired output format
+    result = []
+    for day, data in grouped.items():
+        out = {"timestamp": day}
+        out.update(data)
+        result.append(out)
+
+    return result
+
 if __name__ == "__main__":
     import asyncio
 
@@ -62,11 +94,10 @@ if __name__ == "__main__":
         await db.connect()
         logger.info("Database connected successfully.")
 
-        # async with await anyio.open_file("./data/database_schema.json", "r") as fp:
-        #     schema = json.loads(await fp.read())
-        #     for item in schema:
-        #         item["timestamp"] = datetime.fromisoformat(item["timestamp"])
-        # await db.populate(schema)
+        async with await anyio.open_file("./data/raw_series_data.json", "r") as fp:
+            raw_data = json.loads(await fp.read())
+            schema = mongoify_raw_series(raw_data)
+        await db.populate(schema)
 
         async with await anyio.open_file("./data/sample_physical_data.json", "r") as fp:
             sample_physical_data = json.loads(await fp.read())

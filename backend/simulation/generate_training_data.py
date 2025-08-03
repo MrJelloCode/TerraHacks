@@ -75,7 +75,9 @@ def group_series_data(data):
                 if type_entry in ["HKQuantityTypeIdentifierHeartRate", "HKQuantityTypeIdentifierRespiratoryRate"]:
                     day_entry[type_entry][hour] = np.mean(day_entry[type_entry][hour])
                 else:
-                    day_entry[type_entry][hour] = np.sum(day_entry[type_entry][hour]) if day_entry[type_entry][hour] else 0.0
+                    day_entry[type_entry][hour] = (
+                        np.sum(day_entry[type_entry][hour]) if day_entry[type_entry][hour] else 0.0
+                    )
 
     for day_entry in grouped.values():
         for type_entry in day_entry:
@@ -107,7 +109,6 @@ def group_series_data(data):
     return [{"series_data": entry} for entry in grouped.values() if entry != {}]
 
 
-
 def generate_training_data(series_training_data, fp):
     i = 0
     for entry in series_training_data:
@@ -116,9 +117,7 @@ def generate_training_data(series_training_data, fp):
         series_data = entry["series_data"]
 
         average_bpm = float((np.mean(series_data["HKQuantityTypeIdentifierHeartRate"])) * random.uniform(0.9, 1.1))
-        average_steps = float(
-            (np.mean(series_data["HKQuantityTypeIdentifierStepCount"])) * random.uniform(0.8, 1.2)
-        )
+        average_steps = float((np.mean(series_data["HKQuantityTypeIdentifierStepCount"])) * random.uniform(0.8, 1.2))
         average_respiratory_rate = float(
             (np.mean(series_data["HKQuantityTypeIdentifierRespiratoryRate"])) * random.uniform(0.9, 1.1)
         )
@@ -218,7 +217,6 @@ Say nothing else, only output the JSON.
             print("Error parsing Gemini output:", output, e)
             continue
 
-
         with open(fp) as f:
             stored_training_data = json.load(f)
             stored_training_data.append(
@@ -236,7 +234,6 @@ Say nothing else, only output the JSON.
             json.dump(stored_training_data, f, indent=2)
 
 
-
 if __name__ == "__main__":
     PATH_PREFIX = Path(__file__).parent.parent
     RAW_DATA_FP = PATH_PREFIX / "data/prod_health_data.json"
@@ -248,7 +245,7 @@ if __name__ == "__main__":
 
     print(f"Grouped {len(grouped_data)} days of series data")
     print("Generating training data...")
-    
+
     with open(OUTPUT_DATA_FP, "w") as f:
         json.dump([], f)
 
