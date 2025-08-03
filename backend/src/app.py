@@ -113,6 +113,7 @@ async def get_or_simulate_day(req: SimulationRequest):
         "blood_values": {k: v for k, v in blood_values.items() if k in ["ALT", "AST", "CRP"]},
         "index": risk_score["index_score"],
         "risks": risk_score["risks"],
+        "liver_sprite": ""
     }
 
 

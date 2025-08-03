@@ -150,7 +150,7 @@ export default function App() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://ec2-3-137-203-91.us-east-2.compute.amazonaws.com/get_or_simulate_day`, {
+        const response = await fetch(`http://ec2-18-223-171-221.us-east-2.compute.amazonaws.com/get_or_simulate_day`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -183,7 +183,7 @@ export default function App() {
 
             {loading ? <LoadingBar loading={loading} /> :
               <Animated.Image
-                source={dayData?.liverSprite || require('./assets/liver_sprite_00.png')}
+                source={"http://ec2-18-223-171-221.us-east-2.compute.amazonaws.com" + dayData.liver_sprite}
                 style={{
                   width: 64 * 3,
                   height: 64 * 3,
