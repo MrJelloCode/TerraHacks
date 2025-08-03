@@ -1,7 +1,7 @@
 {
     "_id": "malaravan",
     "age": 18,
-    "is_male": true,
+    "is_physically_active": true,
     "weight": 50.5,
     "height": 177.0,
     "alcohol_consumption": 0.0,

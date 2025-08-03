@@ -43,3 +43,41 @@ class EstimateBloodAttributesNet(nn.Module):
         static_out = self.static_branch(static_input)
         combined = torch.cat([series_out, static_out], dim=1)
         return self.combined_head(combined)
+
+
+class RiskScoreNet(nn.Module):
+    def __init__(self, blood_input_dim=6, num_risks=10):
+        super().__init__()
+
+        self.shared = nn.Sequential(
+            nn.Linear(blood_input_dim, 32),
+            nn.ReLU(),
+            nn.Linear(32, 64),
+            nn.ReLU(),
+        )
+
+        self.index_head = nn.Sequential(
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Linear(32, 1),
+            nn.Sigmoid(),
+        )
+
+        self.risk_head = nn.Sequential(
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Linear(32, num_risks),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, blood_input):
+        """
+        blood_input: Tensor of shape (B, 6)
+        returns:
+            index: Tensor of shape (B, 1)
+            risks: Tensor of shape (B, 10)
+        """
+        features = self.shared(blood_input)
+        index = self.index_head(features)       # (B, 1)
+        risks = self.risk_head(features)        # (B, num_risks)
+        return index.squeeze(1), risks          # squeeze index to (B,)
