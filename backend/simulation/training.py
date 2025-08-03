@@ -5,23 +5,26 @@ from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 
 
-class HealthSeriesDataset(Dataset):
-    def __init__(self, n: int):
-        self.samples = [self.gen() for _ in range(n)]
-
-    def gen(self):
-        x = torch.randn(24, 3)
-        y = torch.rand(1).item()
-        return x, y
+class HealthDataset(Dataset):
+    def __init__(self, series_data, static_data, labels):
+        """
+        series_data: (N, 24, 3)
+        static_data: (N, 6)
+        labels: (N, 6)
+        """
+        self.series_data = torch.tensor(series_data, dtype=torch.float32)
+        self.static_data = torch.tensor(static_data, dtype=torch.float32)
+        self.labels = torch.tensor(labels, dtype=torch.float32)
 
     def __len__(self):
-        return len(self.samples)
+        return len(self.series_data)
 
     def __getitem__(self, idx):
-        x, y = self.samples[idx]
-        return {"series": x, "label": torch.tensor(y).float()}
-
-
+        return {
+            "series": self.series_data[idx],
+            "static": self.static_data[idx],
+            "labels": self.labels[idx],
+        }
 
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

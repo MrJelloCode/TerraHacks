@@ -64,13 +64,13 @@ if __name__ == "__main__":
 
     async def main():
         await db.connect()
-        print("Database connected successfully.")
+        logger.info("Database connected successfully.")
 
         async with await anyio.open_file("./data/database_schema.json", "r") as fp:
             schema = json.loads(await fp.read())
             for item in schema:
                 item["timestamp"] = datetime.fromisoformat(item["timestamp"])
             await db.populate(schema)
-            print("Database populated with initial data.")
+            logger.info("Database populated with initial data.")
 
     asyncio.run(main())

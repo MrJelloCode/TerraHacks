@@ -35,19 +35,23 @@ def grouped_data_to_mongodb(data):
             value["heart_rate"] = value.pop("HKQuantityTypeIdentifierHeartRate")
         if "HKQuantityTypeIdentifierActiveEnergyBurned" in value:
             value["active_energy_burned"] = value.pop("HKQuantityTypeIdentifierActiveEnergyBurned")
-        if "HKCategoryTypeIdentifierSleepAnalysis" in value:
-            value.pop("HKCategoryTypeIdentifierSleepAnalysis")
+
+        for k in list(value.keys()):
+            if k.startswith("HK"):
+                del value[k]  # Remove any keys that start with "HK" that arent the ones we want
+
 
         new_data.append({
             "timestamp": datetime.strptime(key, "%Y-%m-%d").strftime("%Y-%m-%dT%H:%M:%SZ"),  # noqa: DTZ007
             "series": value,
+            "blood_values": {},
             "evaluation": {},
         })
 
     return new_data
 
 if __name__ == "__main__":
-    with Path("./data/apple_watch_7day_raw_data.json").open() as fp:
+    with Path("./data/apple_watch_30day_raw_data.json").open() as fp:
         data = json.load(fp)
         grouped_data = group_apple_watch_data(data)
 

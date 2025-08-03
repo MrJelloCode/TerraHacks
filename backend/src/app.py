@@ -97,6 +97,9 @@ async def reset_simulations():
 async def summarize():
     return {"summary": "This is a placeholder summary from Gemini."}
 
+@app.post("/add_actual_entry/")
+async def add_actual_entry(steps_count: int, heart_rate: int, active_energy_burned: int):
+    pass
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
