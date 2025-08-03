@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Animated, View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { Animated, View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
 import Reports from './reports';
 import MyData from './myData';
 import { SkipBack, Rewind, FastForward, SkipForward } from 'lucide-react-native';
@@ -34,6 +34,26 @@ export default function App() {
       ])
     ).start();
   }, [currentDate]);
+
+  const [idleAnim] = useState(new Animated.Value(0));
+
+useEffect(() => {
+  Animated.loop(
+    Animated.sequence([
+      Animated.timing(idleAnim, {
+        toValue: -10,
+        duration: 1500,
+        useNativeDriver: true
+      }),
+      Animated.timing(idleAnim, {
+        toValue: 0,
+        duration: 1500,
+        useNativeDriver: true
+      })
+    ])
+  ).start();
+}, []);
+
 
   const bgInterpolate = bgAnim.interpolate({
     inputRange: [0, 1],
@@ -109,7 +129,18 @@ export default function App() {
         <View style={[styles.header, { marginBottom: SECTION_SPACING }]}><Text style={styles.headerText}>Welcome, Malaravan</Text></View>
 
         <View style={[styles.liverBox, { marginBottom: SECTION_SPACING }]}>
-          <Text style={[styles.boxLabel2,{ marginBottom: 10 }]}>{formatDate(currentDate)}</Text>
+          <Text style={[styles.boxLabel2, { marginBottom: 10 }]}>{formatDate(currentDate)}</Text>
+          
+          <Animated.Image
+  source={require('./assets/liver_sprite_00.png')}
+  style={{
+    width: 64 * 3,
+    height: 64 * 3,
+    marginBottom: 12,
+    transform: [{ translateY: idleAnim }]
+  }}
+/>
+
           <View style={{ alignItems: 'center' }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '80%', marginTop: 20 }}>
               <TouchableOpacity onPress={() => changeDate(-7)}><Text style={{ fontSize: 28 }}><SkipBack /></Text></TouchableOpacity>
@@ -119,6 +150,7 @@ export default function App() {
             </View>
             <TouchableOpacity onPress={() => setCurrentDate(new Date('2025-08-03'))} style={{ marginTop: 14, backgroundColor: '#fff', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: COLORS.primary }}>
               <Text style={{ color: COLORS.primary, fontWeight: '600' }}>Reset Date</Text>
+          
             </TouchableOpacity>
           </View>
         </View>
