@@ -97,7 +97,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[INFO] Using device: {device}")
 
-    with open("./data/risk_score_training_data.json") as f:
+    with open("./data/training_data.json") as f:
         data = json.load(f)
 
     print(f"[INFO] Loaded {len(data)} samples.")
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     overall_best_loss = float("inf")
     overall_best_state = None
 
-    for run in range(1, 2):
+    for run in range(1, 10):
         print(f"\n========================")
         print(f"[RUN {run}] Starting training...")
         run_loss, run_state = train_once(data, device)

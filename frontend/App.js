@@ -52,24 +52,8 @@ export default function App() {
   const [modalOpacity] = useState(new Animated.Value(0));
   const [currentDate, setCurrentDate] = useState(new Date('2025-08-03'));
   const [loading, setLoading] = useState(true);
-
+  const [prompt, setPrompt] = useState("");
   const [dayData, setDayData] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`https://api.example.com/data?date=${formatDate(currentDate)}`);
-        const data = await response.json();
-        setDayData(data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [currentDate]);
 
 
   useEffect(() => {
@@ -159,14 +143,33 @@ export default function App() {
     });
   };
 
-  const watchData = [
-    { label: "Heart Rate", value: "72 bpm" },
-    { label: "Steps", value: "9,400/day" },
-    { label: "SpO₂", value: "97%" }
-  ];
-
   if (showReports) return <Reports goBack={() => setShowReports(false)} bgInterpolate={bgInterpolate} />;
   if (showmyData) return <MyData goBack={() => setShowmyData(false)} bgInterpolate={bgInterpolate} />;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`http://ec2-3-137-203-91.us-east-2.compute.amazonaws.com/get_or_simulate_day`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            timestamp: currentDate.toISOString(),
+            prompt: prompt,
+          }),
+        });
+        const data = await response.json();
+        setDayData(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [currentDate, prompt]);
 
   return (
     <div>
@@ -178,7 +181,7 @@ export default function App() {
           <View style={[styles.liverBox, { marginBottom: SECTION_SPACING }]}>
             <Text style={[styles.boxLabel2, { marginBottom: 10 }]}>{formatDate(currentDate)}</Text>
 
-            {loading ? <LoadingBar loading={loading} /> : 
+            {loading ? <LoadingBar loading={loading} /> :
               <Animated.Image
                 source={dayData?.liverSprite || require('./assets/liver_sprite_00.png')}
                 style={{
@@ -201,33 +204,47 @@ export default function App() {
             </View>
           </View>
 
-          <View style={styles.watchSummaryContainer}>
-            {watchData.map((item, index) => (
-              <View key={index} style={styles.watchDataBox}>
-                <Text style={styles.watchDataLabel}>{item.label}</Text>
-                <Text style={styles.watchDataValue}>{item.value}</Text>
-              </View>
-            ))}
-          </View>
-
+          {loading ? <View style={styles.chartRow}>
+            <View style={styles.chartBox}>
+              <Text style={styles.boxLabel}>Loading data...</Text>
+            </View>
+          </View> :
+            <View style={styles.watchSummaryContainer}>
+              {dayData["blood_values"].map((item, index) => (
+                <View key={index} style={styles.watchDataBox}>
+                  <Text style={styles.watchDataLabel}>{item.label}</Text>
+                  <Text style={styles.watchDataValue}>{item.value}</Text>
+                </View>
+              ))}
+            </View>
+          }
           <TouchableOpacity style={[styles.combinedRiskBoxFull, { marginBottom: SECTION_SPACING }]} activeOpacity={0.85} onPress={() => openModal(setRiskModalVisible)}>
-            <View>
-              <Text style={[styles.boxLabel, , { color: COLORS.textPrimary }]}>⚠️ Risk Analysis (Click for more details)</Text>
-              <View style={styles.bullet}><Text style={styles.bulletText}>• ALT elevated - potential liver strain</Text></View>
-              <View style={styles.bullet}><Text style={styles.bulletText}>• Low sleep - less than 5h average</Text></View>
-              <View style={styles.bullet}><Text style={styles.bulletText}>• High stress - above normal threshold</Text></View>
-            </View>
-            <View style={styles.scoreCircleWrapper}>
-              <View style={[styles.scoreCircle, { borderColor: getScoreColor(), backgroundColor: '#fff' }]}><Text style={styles.scoreText}>{score}</Text></View>
-            </View>
+            {loading ?
+              <View>
+                <Text>Loading data...</Text>
+              </View>
+              :
+              <div>
+                <View>
+                  <Text style={[styles.boxLabel, , { color: COLORS.textPrimary }]}>⚠️ Risk Analysis</Text>
+                  <View style={styles.bullet}><Text style={styles.bulletText}>{dayData["risks"].size > 0 ? dayData["risks"][0] : ""}</Text></View>
+                  <View style={styles.bullet}><Text style={styles.bulletText}>{dayData["risks"].size > 1 ? dayData["risks"][1] : ""}</Text></View>
+                  <View style={styles.bullet}><Text style={styles.bulletText}>{dayData["risks"].size > 2 ? dayData["risks"][2] : ""}</Text></View>
+                </View>
+                <View style={styles.scoreCircleWrapper}>
+                  <View style={[styles.scoreCircle, { borderColor: getScoreColor(), backgroundColor: '#fff' }]}><Text style={styles.scoreText}>{dayData["index_score"]}</Text></View>
+                </View>
+              </div>
+            }
           </TouchableOpacity>
 
           <Modal visible={riskModalVisible} animationType="none" transparent>
             <View style={styles.modalBackdrop}>
               <Animated.View style={[styles.modalBox, styles.enhancedModalBox, { transform: [{ scale: modalScale }], opacity: modalOpacity }]}>
                 <Text style={styles.modalTitle}>Risk Details</Text>
-                <Text style={styles.modalText}>- ALT is elevated, indicating potential liver strain.</Text>
-                <Text style={styles.modalText}>- Sleep patterns below 5hr average last 3 days.</Text>
+                  <Text style={styles.modalText}>{dayData["risks"].size > 0 ? dayData["risks"][0] : ""}</Text>
+                  <Text style={styles.modalText}>{dayData["risks"].size > 1 ? dayData["risks"][1] : ""}</Text>
+                  <Text style={styles.modalText}>{dayData["risks"].size > 2 ? dayData["risks"][2] : ""}</Text>
                 <TouchableOpacity onPress={() => closeModal(setRiskModalVisible)} style={[styles.modalButton, { backgroundColor: COLORS.danger }]}>
                   <Text style={[styles.modalButtonText, { color: '#fff' }]}>Close</Text>
                 </TouchableOpacity>
@@ -236,7 +253,7 @@ export default function App() {
           </Modal>
 
           <TouchableOpacity style={[styles.simulateButton, { marginBottom: SECTION_SPACING }]} activeOpacity={0.8} onPress={() => openModal(setSimulateModalVisible)}>
-            <Text style={styles.simulateText}>Simulate a Situation</Text>
+            <Text style={styles.simulateText}>{prompt === "" ? "Simulate a Situation" : "Simulating!"}</Text>
           </TouchableOpacity>
 
           <Modal visible={simulateModalVisible} animationType="none" transparent>
@@ -245,10 +262,10 @@ export default function App() {
                 <Text style={styles.modalTitle}>Simulation</Text>
                 <TextInput style={styles.simulateInput} multiline placeholder="e.g. What if I was 30 years older maintaining the same exercise?" value={simulationText} onChangeText={setSimulationText} />
                 <View style={styles.modalButtonRow}>
-                  <TouchableOpacity onPress={() => closeModal(setSimulateModalVisible)} style={styles.modalButtonAlt} activeOpacity={0.85}>
+                  <TouchableOpacity onPress={() => closeModal(setSimulateModalVisible) && setPrompt("")} style={styles.modalButtonAlt} activeOpacity={0.85}>
                     <Text style={styles.modalButtonText}>Cancel</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => closeModal(setSimulateModalVisible)} style={styles.modalButton} activeOpacity={0.85}>
+                  <TouchableOpacity onPress={() => closeModal(setSimulateModalVisible) && setPrompt(simulationText)} style={styles.modalButton} activeOpacity={0.85}>
                     <Text style={styles.modalButtonText}>Run Simulation</Text>
                   </TouchableOpacity>
                 </View>
